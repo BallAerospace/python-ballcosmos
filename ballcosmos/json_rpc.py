@@ -264,7 +264,7 @@ class JsonRpcResponse(JsonRpc):
 
     msg = "Invalid JSON-RPC 2.0 Response"
     try:
-      hash = json.loads(response_data)
+      hash = json.loads(response_data.decode('latin-1'))
     except Exception as e:
       raise RuntimeError(msg + " : "  + repr(e))
 

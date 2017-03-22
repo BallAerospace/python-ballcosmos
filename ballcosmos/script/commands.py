@@ -6,9 +6,9 @@ def _log_cmd(target_name, cmd_name, cmd_params, raw, no_range, no_hazardous):
   NOTE: This is a helper method and should not be called directly"""
   logger = logging.getLogger('ballcosmos')
   if no_range:
-    logger.warning("Command #{target_name} #{cmd_name} being sent ignoring range checks")
+    logger.warning("Command {:s} {:s} being sent ignoring range checks".format(target_name, cmd_name))
   if no_hazardous:
-    logger.warning("Command #{target_name} #{cmd_name} being sent ignoring hazardous warnings")
+    logger.warning("Command {:s} {:s} being sent ignoring hazardous warnings".format(target_name, cmd_name))
   logger.info(build_cmd_output_string(target_name, cmd_name, cmd_params, raw))
   return None
 

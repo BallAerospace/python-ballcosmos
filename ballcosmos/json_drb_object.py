@@ -252,7 +252,7 @@ class JsonDRbObject:
         else: # IOError, Errno::ENOTSOCK
           self.disconnect()
           self.socket = None
-          raise RuntimeError("Connect canceled 4 : errno #{:d}".format(err))
+          raise RuntimeError("Connect canceled 4 : errno {:d}".format(err))
     except Exception as e:
       raise DRbConnError(str(e))
 

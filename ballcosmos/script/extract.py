@@ -91,14 +91,14 @@ def add_cmd_parameter(keyword, value, cmd_params):
 def extract_fields_from_cmd_text(text):
   split_string = re.split(SPLIT_WITH_REGEX, text, 2)
   if len(split_string) == 1 and SPLIT_WITH_REGEX.match(text):
-    raise RuntimeError("ERROR: 'with' must be followed by parameters : #{text}")
+    raise RuntimeError("ERROR: 'with' must be followed by parameters : {:s}".format(text))
 
   # Extract target_name and cmd_name
   first_half = split_string[0].split(" ")
   if len(first_half) < 2:
-    raise RuntimeError("ERROR: Both Target Name and Command Name must be given : #{text}")
+    raise RuntimeError("ERROR: Both Target Name and Command Name must be given : {:s}".format(text))
   if len(first_half) > 2:
-    raise RuntimeError("ERROR: Only Target Name and Command Name must be given before 'with' : #{text}")
+    raise RuntimeError("ERROR: Only Target Name and Command Name must be given before 'with' : {:s}".format(text))
   target_name = first_half[0]
   cmd_name = first_half[1]
   cmd_params = {}
