@@ -302,21 +302,31 @@ def convert_bytearray_to_string_raw(object):
   else:
     return object
 
-def convert_string_raw_to_bytearray(object):
+def convert_json_class(object):
   if isinstance(object, dict):
     try:
       json_class = object['json_class']
       raw = object['raw']
-      return bytearray(raw)
+      if json_class == 'Float':
+        if raw == 'Infinity':
+          return float('inf')
+        elif raw == '-Infinity':
+          return -float('inf')
+        elif raw == 'NaN':
+          return float('nan')
+        else:
+          return raw
+      else:
+        return bytearray(raw)
     except Exception as e:
       for key, value in object.items():
-        object[key] = convert_string_raw_to_bytearray(value)
+        object[key] = convert_json_class(value)
       return object
   elif isinstance(object, (tuple, list)):
     object = list(object)
     index = 0
     for value in object:
-      object[index] = convert_string_raw_to_bytearray(value)
+      object[index] = convert_json_class(value)
       index += 1
     return object
   else:
@@ -333,7 +343,7 @@ class JsonRpcSuccessResponse(JsonRpcResponse):
     """
 
     JsonRpcResponse.__init__(self, id)
-    result = convert_string_raw_to_bytearray(result)
+    result = convert_json_class(result)
     self.hash['result'] = result
 
   def result(self):

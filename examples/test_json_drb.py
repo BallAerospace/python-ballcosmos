@@ -1,3 +1,6 @@
+import sys
+sys.path.append("C:/git/python-ballcosmos")
+
 import os
 try:
   os.environ["COSMOS_USERPATH"]
@@ -7,6 +10,8 @@ except:
 from ballcosmos.script import *
 
 print(ballcosmos.top_level.USERPATH)
+
+set_replay_mode(False)
 
 #~ # telemetry.py
 print(tlm('INST HEALTH_STATUS TEMP1'))
@@ -48,7 +53,12 @@ print(cmd_no_range_check("INST COLLECT with TYPE NORMAL, TEMP 50.0"))
 
 # tools.py
 display('INST ADCS')
+display('INST HS')
+display('INST COMMANDING')
 clear('INST ADCS')
+clear_all()
+print(get_screen_list())
+print(get_screen_definition("INST ADCS"))
 
 # limits.py
 print(get_out_of_limits())
@@ -60,8 +70,8 @@ print(get_stale())
 print(get_limits("INST", "HEALTH_STATUS", "TEMP1"))
 print(set_limits("INST", "HEALTH_STATUS", "TEMP1", -50, -25, 25, 50))
 print(get_limits_groups())
-print(enable_limits_group("FIRST"))
-print(disable_limits_group("FIRST"))
+print(enable_limits_group("INST2_TEMP2"))
+print(disable_limits_group("INST2_TEMP2"))
 print(get_limits_sets())
 print(set_limits_set("TVAC"))
 print(get_limits_set())
@@ -80,6 +90,25 @@ print(get_router_names())
 print(connect_router('INST_ROUTER'))
 print(disconnect_router('INST_ROUTER'))
 print(router_state('INST_ROUTER'))
+print(get_target_info('INST'))
+print(get_all_target_info())
+print(get_target_ignored_parameters('INST'))
+print(get_target_ignored_items('INST'))
+print(get_interface_info('INST_INT'))
+print(get_all_router_info())
+print(get_all_interface_info())
+print(get_router_info('PREIDENTIFIED_ROUTER'))
+print(get_all_cmd_info())
+print(get_all_tlm_info())
+print(get_cmd_cnt('INST', 'COLLECT'))
+print(get_tlm_cnt('INST', 'ADCS'))
+print(get_packet_loggers())
+print(get_packet_logger_info('DEFAULT'))
+print(get_all_packet_logger_info())
+print(get_background_tasks())
+print(stop_background_task('Limits Groups'))
+print(start_background_task('Limits Groups'))
+print(get_server_status())
 print(get_cmd_log_filename())
 print(get_tlm_log_filename())
 print(stop_logging())
@@ -94,6 +123,12 @@ print(start_raw_logging_router())
 print(stop_raw_logging_router())
 print(get_server_message_log_filename())
 print(start_new_server_message_log())
+id = subscribe_server_messages()
+print(get_server_message(id))
+unsubscribe_server_messages(id)
+print(cmd_tlm_clear_counters())
+print(get_output_logs_filenames())
+print(cmd_tlm_reload())
 
 # scripting.py
 print(play_wav_file('ding.wav'))
@@ -130,4 +165,20 @@ print(wait_packet("INST", "HEALTH_STATUS", 3, 5))
 print(wait_check_packet("INST", "HEALTH_STATUS", 3, 5))
 
 script_disconnect()
+
+# replay.py
+set_replay_mode(True)
+filenames = get_output_logs_filenames()
+print(replay_select_file(filenames[-1]))
+print(replay_status())
+print(replay_set_playback_delay(1))
+print(replay_play())
+print(replay_reverse_play())
+print(replay_stop())
+print(replay_step_forward())
+print(replay_step_back())
+print(replay_move_start())
+print(replay_move_end())
+print(replay_move_index(0))
+
 shutdown_cmd_tlm()

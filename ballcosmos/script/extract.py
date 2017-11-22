@@ -1,4 +1,5 @@
 import re
+from ballcosmos.script.script import *
 
 SCANNING_REGULAR_EXPRESSION = re.compile("(?:\"(?:[^\\\"]|\\.)*\") | (?:'(?:[^\\']|\\.)*') | (?:\[.*\]) | \S+", re.VERBOSE)
 
@@ -80,6 +81,17 @@ def convert_to_value(string):
     # Something went wrong so just return the string as is
     pass
   return return_value
+
+def hex_to_byte_string(string):
+  """Converts the String representing a hexadecimal number (i.e. "0xABCD")
+  to a binary String with the same data (i.e "\xAB\xCD")
+  @return [String] Binary byte string"""
+
+  # Remove leading 0x or 0X
+  if string[:2] == '0x' or string[:2] == '0X':
+    string = string[2:]
+
+  return bytearray.fromhex(string)
 
 def add_cmd_parameter(keyword, value, cmd_params):
   quotes_removed = remove_quotes(value)
