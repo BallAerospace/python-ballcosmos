@@ -32,11 +32,8 @@ def initialize_script_module(hostname = None, port = None):
   else:
     if replay_mode_flag:
       cmd_tlm_server = JsonDRbObject(DEFAULT_REPLAY_API_HOST, DEFAULT_REPLAY_API_PORT)
-      print(id(cmd_tlm_server))
     else:
       cmd_tlm_server = JsonDRbObject(DEFAULT_CTS_API_HOST, DEFAULT_CTS_API_PORT)
-      print(id(cmd_tlm_server))
-  print(id(cmd_tlm_server))
 
 def shutdown_cmd_tlm():
   cmd_tlm_server.shutdown()
