@@ -1,4 +1,6 @@
 import sys
+import time
+import threading
 sys.path.append("C:/git/python-ballcosmos")
 
 import os
@@ -12,6 +14,25 @@ from ballcosmos.script import *
 print(ballcosmos.top_level.USERPATH)
 
 set_replay_mode(False)
+
+def run_thread():
+  print("Running thread")
+  print(cmd("INST ABORT"))
+  print(cmd_no_range_check("INST COLLECT with TYPE NORMAL, TEMP 50.0"))
+  print(cmd_no_hazardous_check("INST CLEAR"))
+  print(cmd_no_checks("INST COLLECT with TYPE SPECIAL, TEMP 50.0"))
+  print(cmd_raw("INST COLLECT with TYPE 0, TEMP 10.0"))
+  print(cmd_raw_no_range_check("INST COLLECT with TYPE 0, TEMP 50.0"))
+  print(cmd_raw_no_hazardous_check("INST CLEAR"))
+  print(cmd_raw_no_checks("INST COLLECT with TYPE 1, TEMP 50.0"))
+  print("Thread completed")
+  
+thread = threading.Thread(target=run_thread)
+thread.start()
+thread.join()
+
+print(connect_interface('EXAMPLE_INT'))
+print(interface_state('TEMPLATED_INT'))
 
 #~ # telemetry.py
 print(tlm('INST HEALTH_STATUS TEMP1'))
@@ -129,6 +150,8 @@ unsubscribe_server_messages(id)
 print(cmd_tlm_clear_counters())
 print(get_output_logs_filenames())
 print(cmd_tlm_reload())
+print(connect_interface('EXAMPLE_INT'))
+print(interface_state('TEMPLATED_INT'))
 
 # scripting.py
 print(play_wav_file('ding.wav'))
@@ -164,6 +187,10 @@ print(wait_expression_stop_on_timeout("True == True", 5))
 print(wait_packet("INST", "HEALTH_STATUS", 3, 5))
 print(wait_check_packet("INST", "HEALTH_STATUS", 3, 5))
 
+thread = threading.Thread(target=run_thread)
+thread.start()
+thread.join()
+
 script_disconnect()
 
 # replay.py
@@ -180,5 +207,6 @@ print(replay_step_back())
 print(replay_move_start())
 print(replay_move_end())
 print(replay_move_index(0))
+
 
 shutdown_cmd_tlm()
