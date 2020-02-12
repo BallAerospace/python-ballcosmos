@@ -689,7 +689,7 @@ def wait_check_process_args(args, function_name):
 
 def cosmos_script_sleep(sleep_time = None):
   """sleep in a script - returns true if canceled mid sleep"""
-  if sleep_time:
+  if sleep_time != None:
     time.sleep(sleep_time)
   else:
     input('Infinite Wait - Press Enter to Continue: ')
