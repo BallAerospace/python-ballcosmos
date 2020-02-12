@@ -1,5 +1,5 @@
 Python support for Ball Aerospace COSMOS
-=================================
+========================================
 
 This project allows accessing the COSMOS API from the python programming language.
 Additional functionality and support will be added over time.
