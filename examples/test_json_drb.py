@@ -26,7 +26,7 @@ def run_thread():
   print(cmd_raw_no_hazardous_check("INST CLEAR"))
   print(cmd_raw_no_checks("INST COLLECT with TYPE 1, TEMP 50.0"))
   print("Thread completed")
-  
+
 thread = threading.Thread(target=run_thread)
 thread.start()
 thread.join()
