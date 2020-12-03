@@ -1,13 +1,21 @@
+#!/usr/bin/env python3
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+# -*- coding: latin-1 -*-
+"""
+examples/test_json_drb.py
+"""
+
 import sys
-import time
 import threading
+
 sys.path.append("C:/git/python-ballcosmos")
 
 import os
+
 try:
-  os.environ["COSMOS_USERPATH"]
+    os.environ["COSMOS_USERPATH"]
 except:
-  os.environ["COSMOS_USERPATH"] = "C:/git/COSMOS/demo"
+    os.environ["COSMOS_USERPATH"] = "C:/git/COSMOS/demo"
 
 from ballcosmos.script import *
 
@@ -15,18 +23,20 @@ print(ballcosmos.top_level.USERPATH)
 
 set_replay_mode(False)
 
+
 def run_thread():
-  print("Running thread")
-  print(cmd("INST ABORT"))
-  print(cmd_no_range_check("INST COLLECT with TYPE NORMAL, TEMP 50.0"))
-  print(cmd_no_hazardous_check("INST CLEAR"))
-  print(cmd_no_checks("INST COLLECT with TYPE SPECIAL, TEMP 50.0"))
-  print(cmd_raw("INST COLLECT with TYPE 0, TEMP 10.0"))
-  print(cmd_raw_no_range_check("INST COLLECT with TYPE 0, TEMP 50.0"))
-  print(cmd_raw_no_hazardous_check("INST CLEAR"))
-  print(cmd_raw_no_checks("INST COLLECT with TYPE 1, TEMP 50.0"))
-  print("Thread completed")
-  
+    print("Running thread")
+    print(cmd("INST ABORT"))
+    print(cmd_no_range_check("INST COLLECT with TYPE NORMAL, TEMP 50.0"))
+    print(cmd_no_hazardous_check("INST CLEAR"))
+    print(cmd_no_checks("INST COLLECT with TYPE SPECIAL, TEMP 50.0"))
+    print(cmd_raw("INST COLLECT with TYPE 0, TEMP 10.0"))
+    print(cmd_raw_no_range_check("INST COLLECT with TYPE 0, TEMP 50.0"))
+    print(cmd_raw_no_hazardous_check("INST CLEAR"))
+    print(cmd_raw_no_checks("INST COLLECT with TYPE 1, TEMP 50.0"))
+    print("Thread completed")
+
+
 thread = threading.Thread(target=run_thread)
 thread.start()
 thread.join()
@@ -34,7 +44,7 @@ thread.join()
 print(connect_interface('EXAMPLE_INT'))
 print(interface_state('TEMPLATED_INT'))
 
-#~ # telemetry.py
+# ~ # telemetry.py
 print(tlm('INST HEALTH_STATUS TEMP1'))
 print(tlm_raw('INST HEALTH_STATUS TEMP1'))
 print(tlm_formatted('INST HEALTH_STATUS TEMP1'))
@@ -207,6 +217,5 @@ print(replay_step_back())
 print(replay_move_start())
 print(replay_move_end())
 print(replay_move_index(0))
-
 
 shutdown_cmd_tlm()
