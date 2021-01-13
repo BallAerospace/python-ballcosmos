@@ -151,7 +151,8 @@ class JsonDRbObject(ContextDecorator):
                 self.connection = HTTPConnection(self.hostname, self.port)
                 self.timeout = self.connect_timeout
                 self.connection.connect()
-
+                exception_ = None
+                break
             except ConnectionRefusedError as e:
                 exception_ = e
                 time.sleep(1)
