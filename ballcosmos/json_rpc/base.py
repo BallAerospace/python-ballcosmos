@@ -24,4 +24,4 @@ class JsonRpc(dict):
 
     @property
     def json_rpc(self):
-        return self.get("jsonrpc", "2.0")
+        return self.get("jsonrpc", JSON_RPC_VERSION)
