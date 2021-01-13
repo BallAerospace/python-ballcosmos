@@ -13,7 +13,7 @@ _x_csrf_token = "COSMOS_X_CSRF_TOKEN"
 
 _max_retry_count = "COSMOS_MAX_RETRY_COUNT"
 
-JSON_RPC_VERSION = os.environ.get(_x_csrf_token, "2.0")
+JSON_RPC_VERSION = os.environ.get(_json_rpc_version, "2.0")
 
 X_CSRF_TOKEN = os.environ.get(_x_csrf_token, "SuperSecret")
 
