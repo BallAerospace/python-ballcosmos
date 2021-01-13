@@ -1,55 +1,68 @@
 import ballcosmos.top_level
 from ballcosmos.json_drb_object import *
 
+
 class CheckError(RuntimeError):
-  pass
+    pass
+
 
 class StopScript(RuntimeError):
-  pass
+    pass
+
 
 class SkipTestCase(RuntimeError):
-  pass
+    pass
+
 
 class HazardousError(RuntimeError):
-  pass
+    pass
+
 
 cmd_tlm_server = None
 replay_mode_flag = False
 
 DEFAULT_CTS_API_PORT = 7777
 DEFAULT_REPLAY_API_PORT = 7877
-DEFAULT_CTS_API_HOST = '127.0.0.1'
-DEFAULT_REPLAY_API_HOST = '127.0.0.1'
+DEFAULT_CTS_API_HOST = "127.0.0.1"
+DEFAULT_REPLAY_API_HOST = "127.0.0.1"
 
-def initialize_script_module(hostname = None, port = None):
-  global cmd_tlm_server
-  global replay_mode_flag
 
-  if cmd_tlm_server:
-    cmd_tlm_server.disconnect()
-  if hostname and port:
-    cmd_tlm_server = JsonDRbObject(hostname, port)
-  else:
-    if replay_mode_flag:
-      cmd_tlm_server = JsonDRbObject(DEFAULT_REPLAY_API_HOST, DEFAULT_REPLAY_API_PORT)
+def initialize_script_module(hostname=None, port=None):
+    global cmd_tlm_server
+    global replay_mode_flag
+
+    if cmd_tlm_server:
+        cmd_tlm_server.disconnect()
+    if hostname and port:
+        cmd_tlm_server = JsonDRbObject(hostname, port)
     else:
-      cmd_tlm_server = JsonDRbObject(DEFAULT_CTS_API_HOST, DEFAULT_CTS_API_PORT)
+        if replay_mode_flag:
+            cmd_tlm_server = JsonDRbObject(
+                DEFAULT_REPLAY_API_HOST, DEFAULT_REPLAY_API_PORT
+            )
+        else:
+            cmd_tlm_server = JsonDRbObject(DEFAULT_CTS_API_HOST, DEFAULT_CTS_API_PORT)
+
 
 def shutdown_cmd_tlm():
-  cmd_tlm_server.shutdown()
+    cmd_tlm_server.shutdown()
+
 
 def script_disconnect():
-  cmd_tlm_server.disconnect()
+    cmd_tlm_server.disconnect()
 
-def set_replay_mode(replay_mode, hostname = None, port = None):
-  global replay_mode_flag
-  if replay_mode != replay_mode_flag:
-    replay_mode_flag = replay_mode
-    initialize_script_module(hostname, port)
+
+def set_replay_mode(replay_mode, hostname=None, port=None):
+    global replay_mode_flag
+    if replay_mode != replay_mode_flag:
+        replay_mode_flag = replay_mode
+        initialize_script_module(hostname, port)
+
 
 def get_replay_mode():
-  global replay_mode_flag
-  return replay_mode_flag
+    global replay_mode_flag
+    return replay_mode_flag
+
 
 initialize_script_module()
 

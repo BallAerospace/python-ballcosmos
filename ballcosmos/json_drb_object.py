@@ -19,14 +19,11 @@ from http.client import HTTPConnection
 from threading import RLock
 from contextlib import ContextDecorator
 
-from ballcosmos.environment import (
-    MAX_RETRY_COUNT,
-    X_CSRF_TOKEN
-)
+from ballcosmos.environment import MAX_RETRY_COUNT, X_CSRF_TOKEN
 from ballcosmos.exceptions import (
     BallCosmosConnectionError,
     BallCosmosRequestError,
-    BallCosmosResponseError
+    BallCosmosResponseError,
 )
 from ballcosmos.json_rpc import (
     JsonRpcRequest,
@@ -72,7 +69,9 @@ class JsonDRbObject(ContextDecorator):
 
     def __enter__(self):
         if self.shutdown_needed:
-            raise BallCosmosConnectionError("Shutdown needed: {}".format(self.shutdown_needed))
+            raise BallCosmosConnectionError(
+                "Shutdown needed: {}".format(self.shutdown_needed)
+            )
 
         if self.connection is None or self.request_in_progress:
             self._connect()
@@ -119,7 +118,9 @@ class JsonDRbObject(ContextDecorator):
             first_try = True
             while True:
                 if self.shutdown_needed:
-                    raise BallCosmosConnectionError("Shutdown needed: {}".format(self.shutdown_needed))
+                    raise BallCosmosConnectionError(
+                        "Shutdown needed: {}".format(self.shutdown_needed)
+                    )
 
                 if self.connection is None or self.request_in_progress:
                     self._connect()
@@ -166,7 +167,9 @@ class JsonDRbObject(ContextDecorator):
                 print("connect failed {}".format(exception_))
             self.disconnect()
             self.connection = None
-            raise BallCosmosConnectionError("failed to connection to cosmos") from exception_
+            raise BallCosmosConnectionError(
+                "failed to connection to cosmos"
+            ) from exception_
 
     def _make_request(self, method_name, method_params, first_try):
         request = JsonRpcRequest(method_name, method_params, self.id)
@@ -184,8 +187,8 @@ class JsonDRbObject(ContextDecorator):
                 body=request_data,
                 headers={
                     "Content-Type": "application/json-rpc",
-                    "X_CSRF_TOKEN": X_CSRF_TOKEN
-                }
+                    "X_CSRF_TOKEN": X_CSRF_TOKEN,
+                },
             )
             response = self.connection.getresponse()
             response_data = response.read()
@@ -198,7 +201,9 @@ class JsonDRbObject(ContextDecorator):
             if first_try:
                 return None
             else:
-                raise BallCosmosRequestError("failed to make request: {}".format(request)) from e
+                raise BallCosmosRequestError(
+                    "failed to make request: {}".format(request)
+                ) from e
         return response_data
 
     def _handle_response(self, response_data):
@@ -215,6 +220,7 @@ class JsonDRbObject(ContextDecorator):
         try:
             return response.result
         except AttributeError:
-            msg = "id {}, error code: {}, message: {}".format(response.id, response.error.code, response.error.message)
+            msg = "id {}, error code: {}, message: {}".format(
+                response.id, response.error.code, response.error.message
+            )
             raise RuntimeError(msg, response)
-

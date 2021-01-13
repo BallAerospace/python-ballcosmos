@@ -7,16 +7,12 @@ test_json_rpc.py
 
 import unittest
 
-from ballcosmos.exceptions import (
-    BallCosmosRequestError,
-    BallCosmosResponseError
-)
+from ballcosmos.exceptions import BallCosmosRequestError, BallCosmosResponseError
 from ballcosmos.json_rpc.request import JsonRpcRequest
 from ballcosmos.json_rpc.response import JsonRpcResponse
 
 
 class TestJsonRpc(unittest.TestCase):
-
     def test_basic_request(self):
         """
         Test json request
@@ -30,10 +26,12 @@ class TestJsonRpc(unittest.TestCase):
         """
         Test json request
         """
-        json_request_example = '{"method": "connect_interface", "params": ["EXAMPLE_INT"], "id": 110}'
+        json_request_example = (
+            '{"method": "connect_interface", "params": ["EXAMPLE_INT"], "id": 110}'
+        )
         with self.assertRaises(BallCosmosRequestError) as context:
             JsonRpcRequest.from_json(json_request_example)
-            self.assertTrue('jsonrpc' in context.exception)
+            self.assertTrue("jsonrpc" in context.exception)
 
     def test_basic_response(self):
         """
@@ -52,8 +50,8 @@ class TestJsonRpc(unittest.TestCase):
         json_response_example = b'{"id": 107, "result": 0}'
         with self.assertRaises(BallCosmosResponseError) as context:
             JsonRpcResponse.from_json(json_response_example)
-            self.assertTrue('jsonrpc' in context.exception)
+            self.assertTrue("jsonrpc" in context.exception)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
