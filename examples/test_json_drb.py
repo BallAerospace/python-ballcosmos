@@ -187,15 +187,9 @@ print(wait_expression_stop_on_timeout("True == True", 5))
 print(wait_packet("INST", "HEALTH_STATUS", 3, 5))
 print(wait_check_packet("INST", "HEALTH_STATUS", 3, 5))
 
-thread = threading.Thread(target=run_thread)
-thread.start()
-thread.join()
-
-script_disconnect()
-
 # replay.py
-set_replay_mode(True)
 filenames = get_output_logs_filenames()
+set_replay_mode(True)
 print(replay_select_file(filenames[-1]))
 print(replay_status())
 print(replay_set_playback_delay(1))
@@ -208,5 +202,12 @@ print(replay_move_start())
 print(replay_move_end())
 print(replay_move_index(0))
 
+set_replay_mode(False)
+
+thread = threading.Thread(target=run_thread)
+thread.start()
+thread.join()
+
+script_disconnect()
 
 shutdown_cmd_tlm()
