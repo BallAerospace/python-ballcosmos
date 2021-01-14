@@ -27,7 +27,7 @@ class JsonRpcResponse(JsonRpc):
     @property
     def result(self):
         """"Return the result of the method request"""
-        return self['result']
+        return self["result"]
 
     @classmethod
     def from_json(cls, response_data):
@@ -156,7 +156,9 @@ class JsonRpcErrorResponse(JsonRpcResponse):
         """
 
         JsonRpcResponse.__init__(self, id_)
-        self["error"] = JsonRpcError(error.get("code"), error.get("message"), error.get("data"))
+        self["error"] = JsonRpcError(
+            error.get("code"), error.get("message"), error.get("data")
+        )
 
     @property
     def error(self):

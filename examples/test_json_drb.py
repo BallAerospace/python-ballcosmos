@@ -1,13 +1,15 @@
 import sys
 import time
 import threading
+
 sys.path.append("C:/git/python-ballcosmos")
 
 import os
+
 try:
-  os.environ["COSMOS_USERPATH"]
+    os.environ["COSMOS_USERPATH"]
 except:
-  os.environ["COSMOS_USERPATH"] = "C:/git/COSMOS/demo"
+    os.environ["COSMOS_USERPATH"] = "C:/git/COSMOS/demo"
 
 from ballcosmos.script import *
 
@@ -15,41 +17,51 @@ print(ballcosmos.top_level.USERPATH)
 
 set_replay_mode(False)
 
+
 def run_thread():
-  print("Running thread")
-  print(cmd("INST ABORT"))
-  print(cmd_no_range_check("INST COLLECT with TYPE NORMAL, TEMP 50.0"))
-  print(cmd_no_hazardous_check("INST CLEAR"))
-  print(cmd_no_checks("INST COLLECT with TYPE SPECIAL, TEMP 50.0"))
-  print(cmd_raw("INST COLLECT with TYPE 0, TEMP 10.0"))
-  print(cmd_raw_no_range_check("INST COLLECT with TYPE 0, TEMP 50.0"))
-  print(cmd_raw_no_hazardous_check("INST CLEAR"))
-  print(cmd_raw_no_checks("INST COLLECT with TYPE 1, TEMP 50.0"))
-  print("Thread completed")
-  
+    print("Running thread")
+    print(cmd("INST ABORT"))
+    print(cmd_no_range_check("INST COLLECT with TYPE NORMAL, TEMP 50.0"))
+    print(cmd_no_hazardous_check("INST CLEAR"))
+    print(cmd_no_checks("INST COLLECT with TYPE SPECIAL, TEMP 50.0"))
+    print(cmd_raw("INST COLLECT with TYPE 0, TEMP 10.0"))
+    print(cmd_raw_no_range_check("INST COLLECT with TYPE 0, TEMP 50.0"))
+    print(cmd_raw_no_hazardous_check("INST CLEAR"))
+    print(cmd_raw_no_checks("INST COLLECT with TYPE 1, TEMP 50.0"))
+    print("Thread completed")
+
+
 thread = threading.Thread(target=run_thread)
 thread.start()
 thread.join()
 
-print(connect_interface('EXAMPLE_INT'))
-print(interface_state('TEMPLATED_INT'))
+print(connect_interface("EXAMPLE_INT"))
+print(interface_state("TEMPLATED_INT"))
 
-#~ # telemetry.py
-print(tlm('INST HEALTH_STATUS TEMP1'))
-print(tlm_raw('INST HEALTH_STATUS TEMP1'))
-print(tlm_formatted('INST HEALTH_STATUS TEMP1'))
-print(tlm_with_units('INST HEALTH_STATUS TEMP1'))
-print(tlm_variable('INST HEALTH_STATUS TEMP1', 'RAW'))
-print(set_tlm('INST HEALTH_STATUS TEMP1 = 5'))
-print(set_tlm_raw('INST HEALTH_STATUS TEMP1 = 5'))
-print(get_tlm_packet('INST', 'HEALTH_STATUS'))
-print(get_tlm_values([['INST', 'HEALTH_STATUS', 'TEMP1'], ['INST', 'HEALTH_STATUS', 'TEMP2']]))
-print(get_tlm_list('INST'))
-print(get_tlm_item_list('INST', 'HEALTH_STATUS'))
+# ~ # telemetry.py
+print(tlm("INST HEALTH_STATUS TEMP1"))
+print(tlm_raw("INST HEALTH_STATUS TEMP1"))
+print(tlm_formatted("INST HEALTH_STATUS TEMP1"))
+print(tlm_with_units("INST HEALTH_STATUS TEMP1"))
+print(tlm_variable("INST HEALTH_STATUS TEMP1", "RAW"))
+print(set_tlm("INST HEALTH_STATUS TEMP1 = 5"))
+print(set_tlm_raw("INST HEALTH_STATUS TEMP1 = 5"))
+print(get_tlm_packet("INST", "HEALTH_STATUS"))
+print(
+    get_tlm_values(
+        [["INST", "HEALTH_STATUS", "TEMP1"], ["INST", "HEALTH_STATUS", "TEMP2"]]
+    )
+)
+print(get_tlm_list("INST"))
+print(get_tlm_item_list("INST", "HEALTH_STATUS"))
 print(get_target_list())
-print(get_tlm_details([['INST', 'HEALTH_STATUS', 'TEMP1'], ['INST', 'HEALTH_STATUS', 'TEMP2']]))
-print(get_tlm_buffer('INST', 'HEALTH_STATUS'))
-id = subscribe_packet_data([['INST', 'HEALTH_STATUS']])
+print(
+    get_tlm_details(
+        [["INST", "HEALTH_STATUS", "TEMP1"], ["INST", "HEALTH_STATUS", "TEMP2"]]
+    )
+)
+print(get_tlm_buffer("INST", "HEALTH_STATUS"))
+id = subscribe_packet_data([["INST", "HEALTH_STATUS"]])
 print(get_packet_data(id))
 unsubscribe_packet_data(id)
 
@@ -62,21 +74,21 @@ print(cmd_raw("INST COLLECT with TYPE 0, TEMP 10.0"))
 print(cmd_raw_no_range_check("INST COLLECT with TYPE 0, TEMP 50.0"))
 print(cmd_raw_no_hazardous_check("INST CLEAR"))
 print(cmd_raw_no_checks("INST COLLECT with TYPE 1, TEMP 50.0"))
-print(send_raw('EXAMPLE_INT', "\x00\x00\x00\x00"))
-print(send_raw_file('EXAMPLE_INT', "C:\git\COSMOS\README.md"))
-print(get_cmd_list('INST'))
-print(get_cmd_param_list('INST', 'COLLECT'))
-print(get_cmd_hazardous('INST', 'CLEAR'))
-print(get_cmd_value('INST', 'COLLECT', 'TEMP'))
+print(send_raw("EXAMPLE_INT", "\x00\x00\x00\x00"))
+print(send_raw_file("EXAMPLE_INT", "C:\git\COSMOS\README.md"))
+print(get_cmd_list("INST"))
+print(get_cmd_param_list("INST", "COLLECT"))
+print(get_cmd_hazardous("INST", "CLEAR"))
+print(get_cmd_value("INST", "COLLECT", "TEMP"))
 print(get_cmd_time())
-print(get_cmd_buffer('INST', 'COLLECT'))
+print(get_cmd_buffer("INST", "COLLECT"))
 print(cmd_no_range_check("INST COLLECT with TYPE NORMAL, TEMP 50.0"))
 
 # tools.py
-display('INST ADCS')
-display('INST HS')
-display('INST COMMANDING')
-clear('INST ADCS')
+display("INST ADCS")
+display("INST HS")
+display("INST COMMANDING")
+clear("INST ADCS")
 clear_all()
 print(get_screen_list())
 print(get_screen_definition("INST ADCS"))
@@ -103,32 +115,32 @@ print(unsubscribe_limits_events(id))
 
 # cmd_tlm_server.py
 print(get_interface_names())
-print(disconnect_interface('INST_INT'))
-print(connect_interface('INST_INT'))
-print(interface_state('INST_INT'))
-print(map_target_to_interface('INST', 'INST_INT'))
+print(disconnect_interface("INST_INT"))
+print(connect_interface("INST_INT"))
+print(interface_state("INST_INT"))
+print(map_target_to_interface("INST", "INST_INT"))
 print(get_router_names())
-print(connect_router('INST_ROUTER'))
-print(disconnect_router('INST_ROUTER'))
-print(router_state('INST_ROUTER'))
-print(get_target_info('INST'))
+print(connect_router("INST_ROUTER"))
+print(disconnect_router("INST_ROUTER"))
+print(router_state("INST_ROUTER"))
+print(get_target_info("INST"))
 print(get_all_target_info())
-print(get_target_ignored_parameters('INST'))
-print(get_target_ignored_items('INST'))
-print(get_interface_info('INST_INT'))
+print(get_target_ignored_parameters("INST"))
+print(get_target_ignored_items("INST"))
+print(get_interface_info("INST_INT"))
 print(get_all_router_info())
 print(get_all_interface_info())
-print(get_router_info('PREIDENTIFIED_ROUTER'))
+print(get_router_info("PREIDENTIFIED_ROUTER"))
 print(get_all_cmd_info())
 print(get_all_tlm_info())
-print(get_cmd_cnt('INST', 'COLLECT'))
-print(get_tlm_cnt('INST', 'ADCS'))
+print(get_cmd_cnt("INST", "COLLECT"))
+print(get_tlm_cnt("INST", "ADCS"))
 print(get_packet_loggers())
-print(get_packet_logger_info('DEFAULT'))
+print(get_packet_logger_info("DEFAULT"))
 print(get_all_packet_logger_info())
 print(get_background_tasks())
-print(stop_background_task('Limits Groups'))
-print(start_background_task('Limits Groups'))
+print(stop_background_task("Limits Groups"))
+print(start_background_task("Limits Groups"))
 print(get_server_status())
 print(get_cmd_log_filename())
 print(get_tlm_log_filename())
@@ -150,18 +162,18 @@ unsubscribe_server_messages(id)
 print(cmd_tlm_clear_counters())
 print(get_output_logs_filenames())
 print(cmd_tlm_reload())
-print(connect_interface('EXAMPLE_INT'))
-print(interface_state('TEMPLATED_INT'))
+print(connect_interface("EXAMPLE_INT"))
+print(interface_state("TEMPLATED_INT"))
 
 # scripting.py
-print(play_wav_file('ding.wav'))
+print(play_wav_file("ding.wav"))
 print(status_bar("hello"))
 print(ask_string("Question?: "))
 print(ask("Well?: "))
 print(prompt("Hit Ok"))
-print(message_box("message here", 'one', 'two'))
-print(vertical_message_box("message here", 'one', 'two'))
-print(combo_box("message here", 'one', 'two'))
+print(message_box("message here", "one", "two"))
+print(vertical_message_box("message here", "one", "two"))
+print(combo_box("message here", "one", "two"))
 print(save_file_dialog())
 print(open_file_dialog())
 print(open_files_dialog())

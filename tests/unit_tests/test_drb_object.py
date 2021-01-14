@@ -8,10 +8,7 @@ test_drb.py
 import unittest
 from unittest.mock import patch, MagicMock
 
-from ballcosmos.exceptions import (
-    BallCosmosRequestError,
-    BallCosmosResponseError
-)
+from ballcosmos.exceptions import BallCosmosRequestError, BallCosmosResponseError
 from ballcosmos.json_drb_object import JsonDRbObject
 
 
@@ -24,7 +21,7 @@ class TestDrbObject(unittest.TestCase):
         """
         Test json request
         """
-        connect.return_value = 'test'
+        connect.return_value = "test"
         cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
         self.assertIsNone(cmd_tlm_server.connection)
 
@@ -36,12 +33,14 @@ class TestDrbObject(unittest.TestCase):
         mock = MagicMock()
         mock.connect.return_value = MagicMock()
         mock.request.request = MagicMock()
-        mock.getresponse.return_value.read.return_value = b'{"jsonrpc": "2.0", "id": 107, "result": 0}'
+        mock.getresponse.return_value.read.return_value = (
+            b'{"jsonrpc": "2.0", "id": 107, "result": 0}'
+        )
         connection.return_value = mock
         cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
         cmd_tlm_server.write("test")
         self.assertIsNotNone(cmd_tlm_server.connection)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
