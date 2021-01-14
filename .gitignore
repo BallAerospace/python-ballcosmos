@@ -8,6 +8,7 @@ __pycache__/
 *.so
 *~
 .coverage
+htmlcov
 
 # due to using tox and pytest
 .tox

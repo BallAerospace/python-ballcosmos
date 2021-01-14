@@ -8,8 +8,13 @@ import os
 
 try:
     os.environ["COSMOS_USERPATH"]
-except:
+except KeyError:
     os.environ["COSMOS_USERPATH"] = "C:/git/COSMOS/demo"
+
+try:
+    os.environ["COSMOS_VERSION"]
+except KeyError:
+    os.environ["COSMOS_VERSION"] = "4"
 
 from ballcosmos.script import *
 

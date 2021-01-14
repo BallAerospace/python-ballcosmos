@@ -24,11 +24,6 @@ class JsonRpcResponse(JsonRpc):
         super().__init__()
         self["id"] = id_
 
-    @property
-    def result(self):
-        """"Return the result of the method request"""
-        return self["result"]
-
     @classmethod
     def from_json(cls, response_data):
         """Creates a JsonRpcResponse object from a JSON encoded String.
@@ -44,7 +39,7 @@ class JsonRpcResponse(JsonRpc):
         try:
             hash_ = json.loads(response_data.decode("latin-1"))
         except Exception as e:
-            raise (msg + " : " + repr(e))
+            raise RuntimeError(msg, response_data) from e
 
         try:
             # Verify the jsonrpc version is correct and there is an ID
@@ -124,8 +119,7 @@ class JsonRpcSuccessResponse(JsonRpcResponse):
         Parameters:
         id -- The identifier which will be matched to the request
         """
-
-        JsonRpcResponse.__init__(self, id_)
+        super().__init__(id_)
         result = convert_json_class(result)
         self["result"] = result
 
@@ -154,11 +148,8 @@ class JsonRpcErrorResponse(JsonRpcResponse):
         error -- The error object
         id -- The identifier which will be matched to the request
         """
-
-        JsonRpcResponse.__init__(self, id_)
-        self["error"] = JsonRpcError(
-            error.get("code"), error.get("message"), error.get("data")
-        )
+        super().__init__(id_)
+        self["error"] = JsonRpcError.from_hash(error)
 
     @property
     def error(self):
@@ -172,4 +163,4 @@ class JsonRpcErrorResponse(JsonRpcResponse):
         Parameters:
         hash -- Hash containing the following keys: error and id
         """
-        return cls(JsonRpcError.from_hash(hash_["error"]), hash_["id"])
+        return cls(hash_["error"], hash_["id"])

@@ -19,7 +19,12 @@ from http.client import HTTPConnection
 from threading import RLock
 from contextlib import ContextDecorator
 
-from ballcosmos.environment import MAX_RETRY_COUNT, X_CSRF_TOKEN
+from ballcosmos.environment import (
+    COSMOS_VERSION,
+    MAX_RETRY_COUNT,
+    USER_AGENT,
+    X_CSRF_TOKEN,
+)
 from ballcosmos.exceptions import (
     BallCosmosConnectionError,
     BallCosmosRequestError,
@@ -28,7 +33,6 @@ from ballcosmos.exceptions import (
 from ballcosmos.json_rpc import (
     JsonRpcRequest,
     JsonRpcResponse,
-    JsonRpcErrorResponse,
     convert_bytearray_to_string_raw,
 )
 
@@ -60,12 +64,13 @@ class JsonDRbObject(ContextDecorator):
         self.connection = None
         self.socket = None
         self.id = 0
-        self.debug = False
+        self.debug = True
         self.request_in_progress = False
         self.connect_timeout = connect_timeout
         if self.connect_timeout is not None:
             self.connect_timeout = float(self.connect_timeout)
         self.shutdown_needed = False
+        self.api_url = "/" if COSMOS_VERSION == "4" else "/api"
 
     def __enter__(self):
         if self.shutdown_needed:
@@ -178,15 +183,16 @@ class JsonDRbObject(ContextDecorator):
 
         hash_ = convert_bytearray_to_string_raw(request)
         request_data = json.dumps(hash_)
+        if self.debug:
+            print("request:\n{}".format(request_data))
         try:
-            if self.debug:
-                print("Request:\n{}".format(request_data))
             self.request_in_progress = True
             self.connection.request(
                 method="POST",
-                url="/",
+                url=self.api_url,
                 body=request_data,
                 headers={
+                    "User-Agent": USER_AGENT,
                     "Content-Type": "application/json-rpc",
                     "X_CSRF_TOKEN": X_CSRF_TOKEN,
                 },
@@ -195,7 +201,7 @@ class JsonDRbObject(ContextDecorator):
             response_data = response.read()
             self.request_in_progress = False
             if self.debug:
-                print("Response:\n{}".format(response_data))
+                print("response:\n{}".format(response_data))
         except Exception as e:
             self.disconnect()
             self.connection = None
@@ -216,12 +222,13 @@ class JsonDRbObject(ContextDecorator):
             raise BallCosmosResponseError("socket closed by server")
 
         response = JsonRpcResponse.from_json(response_data)
+
         if self.debug:
-            print("response:\n{}".format(response))
+            print("response {}:\n{}".format(type(response), response))
+
         try:
             return response.result
         except AttributeError:
-            msg = "id {}, error code: {}, message: {}".format(
-                response.id, response.error.code, response.error.message
-            )
-            raise RuntimeError(msg, response)
+            pass
+
+        return response
