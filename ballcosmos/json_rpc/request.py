@@ -30,7 +30,7 @@ class JsonRpcRequest(JsonRpc):
         if method_params is not None and len(method_params) != 0:
             self["params"] = method_params
         if COSMOS_VERSION != "4":
-            self["keyword_params"] = {"scope": "*"}
+            self["keyword_params"] = {"scope": "DEFAULT"}
             if keyword_params is not None:
                 self["keyword_params"].update(keyword_params)
         self["id"] = int(id_)

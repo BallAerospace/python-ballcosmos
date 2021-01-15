@@ -8,7 +8,6 @@ test_drb_object.py
 import unittest
 from unittest.mock import patch, MagicMock
 
-from ballcosmos.exceptions import BallCosmosRequestError, BallCosmosResponseError
 from ballcosmos.json_drb_object import JsonDRbObject
 
 

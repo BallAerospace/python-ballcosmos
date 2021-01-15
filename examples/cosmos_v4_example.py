@@ -16,6 +16,12 @@ try:
 except KeyError:
     os.environ["COSMOS_VERSION"] = "4"
 
+try:
+    os.environ["COSMOS_DEBUG"]
+except KeyError:
+    os.environ["COSMOS_DEBUG"] = ""
+
+
 from ballcosmos.script import *
 
 print(ballcosmos.top_level.USERPATH)

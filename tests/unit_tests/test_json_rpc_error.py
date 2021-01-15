@@ -7,11 +7,11 @@ test_json_rpc_error.py
 
 import unittest
 
-from ballcosmos.exceptions import BallCosmosResponseError
 from ballcosmos.json_rpc.error import JsonRpcError
 
 
 class TestJsonRpcError(unittest.TestCase):
+
     def test_error(self):
         """
         Test json request

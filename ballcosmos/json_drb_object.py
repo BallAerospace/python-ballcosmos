@@ -21,6 +21,7 @@ from contextlib import ContextDecorator
 
 from ballcosmos.environment import (
     COSMOS_VERSION,
+    DEBUG,
     MAX_RETRY_COUNT,
     USER_AGENT,
     X_CSRF_TOKEN,
@@ -64,7 +65,7 @@ class JsonDRbObject(ContextDecorator):
         self.connection = None
         self.socket = None
         self.id = 0
-        self.debug = True
+        self.debug = DEBUG
         self.request_in_progress = False
         self.connect_timeout = connect_timeout
         if self.connect_timeout is not None:

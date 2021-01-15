@@ -10,6 +10,8 @@ import os
 from ballcosmos import __name__, __version__
 
 
+_debug = "COSMOS_DEBUG"
+
 _cosmos_version = "COSMOS_VERSION"
 
 _user_agent = "COSMOS_USER_AGENT"
@@ -19,6 +21,8 @@ _json_rpc_version = "COSMOS_JSON_RPC_VERSION"
 _x_csrf_token = "COSMOS_X_CSRF_TOKEN"
 
 _max_retry_count = "COSMOS_MAX_RETRY_COUNT"
+
+DEBUG = bool(os.environ.get(_debug))
 
 COSMOS_VERSION = os.environ.get(_cosmos_version, "5")
 
