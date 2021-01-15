@@ -269,10 +269,8 @@ def _wait_tolerance(raw, *args):
         range_bottom = expected_value - tolerance
         range_top = expected_value + tolerance
         wait_str = "WAIT: {:s}".format(_upcase(target_name, packet_name, item_name))
-        range_str = (
-            "range {:g} to {:g} with value == {:g} after waiting {:g} seconds".format(
-                range_bottom, range_top, value, time_float
-            )
+        range_str = "range {:g} to {:g} with value == {:g} after waiting {:g} seconds".format(
+            range_bottom, range_top, value, time_float
         )
         logger = logging.getLogger("ballcosmos")
         if success:
@@ -457,10 +455,8 @@ def _wait_check_tolerance(raw, *args):
         range_bottom = expected_value - tolerance
         range_top = expected_value + tolerance
         check_str = "CHECK: {:s}".format(_upcase(target_name, packet_name, item_name))
-        range_str = (
-            "range {:g} to {:g} with value == {:g} after waiting {:g} seconds".format(
-                range_bottom, range_top, value, time_float
-            )
+        range_str = "range {:g} to {:g} with value == {:g} after waiting {:g} seconds".format(
+            range_bottom, range_top, value, time_float
         )
         if success:
             logger = logging.getLogger("ballcosmos")

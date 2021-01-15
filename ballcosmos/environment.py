@@ -35,11 +35,11 @@ _default_user_agent = [
 
 if os.name == "nt":
     _default_user_agent.append(
-        "{}:{}".format(os.environ.get("COMPUTERNAME"), os.environ.get("USERNAME")),
+        "{}:{}".format(os.environ.get("COMPUTERNAME"), os.environ.get("USERNAME"))
     )
 else:
     _default_user_agent.append(
-        "{}:{}".format(os.environ.get("HOSTNAME"), os.environ.get("USER")),
+        "{}:{}".format(os.environ.get("HOSTNAME"), os.environ.get("USER"))
     )
 
 USER_AGENT = os.environ.get(_user_agent, " ".join(_default_user_agent))
