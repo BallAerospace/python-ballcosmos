@@ -29,6 +29,12 @@ DEFAULT_CTS_API_HOST = "127.0.0.1"
 DEFAULT_REPLAY_API_HOST = "127.0.0.1"
 
 
+def update_scope(scope: str):
+    global cmd_tlm_server
+    cmd_tlm_server.scope = str(scope)
+    os.environ["COSMOS_SCOPE"] = str(scope)
+
+
 def initialize_script_module(hostname=None, port=None, version=None):
     global cmd_tlm_server
     global replay_mode_flag

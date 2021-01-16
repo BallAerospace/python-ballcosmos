@@ -20,9 +20,9 @@ class TestDrbObject(unittest.TestCase):
         """
         Test json request
         """
-        connect.return_value = "test"
         cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
-        self.assertIsNone(cmd_tlm_server.connection)
+        connect.assert_not_called()
+        self.assertIsNone(cmd_tlm_server._connection)
 
     @patch("ballcosmos.json_drb_object.HTTPConnection")
     def test_connection(self, connection):
@@ -37,8 +37,8 @@ class TestDrbObject(unittest.TestCase):
         )
         connection.return_value = mock
         cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
-        cmd_tlm_server.write("test")
-        self.assertIsNotNone(cmd_tlm_server.connection)
+        cmd_tlm_server.write(self.test_connection.__name__)
+        self.assertIsNotNone(cmd_tlm_server._connection)
         mock.connect.assert_called_once()
         mock.request.assert_called_once()
 
@@ -55,8 +55,8 @@ class TestDrbObject(unittest.TestCase):
         )
         connection.return_value = mock
         with JsonDRbObject(self.HOST, self.PORT) as cmd_tlm_server:
-            cmd_tlm_server.write("test")
-            self.assertIsNotNone(cmd_tlm_server.connection)
+            cmd_tlm_server.write(self.test_with_connection.__name__)
+            self.assertIsNotNone(cmd_tlm_server._connection)
         mock.connect.assert_called_once()
         mock.request.assert_called_once()
 
@@ -72,8 +72,8 @@ class TestDrbObject(unittest.TestCase):
         connection.return_value = mock
         cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
         with self.assertRaises(RuntimeError):
-            cmd_tlm_server.write("test")
-        self.assertIsNone(cmd_tlm_server.connection)
+            cmd_tlm_server.write(self.test_connection_refused_error.__name__)
+        self.assertIsNone(cmd_tlm_server._connection)
         mock.connect.assert_called()
         mock.request.assert_not_called()
 
@@ -87,8 +87,8 @@ class TestDrbObject(unittest.TestCase):
         connection.return_value = mock
         cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
         with self.assertRaises(RuntimeError):
-            cmd_tlm_server.write("test")
-        self.assertIsNone(cmd_tlm_server.connection)
+            cmd_tlm_server.write(self.test_connection_error.__name__)
+        self.assertIsNone(cmd_tlm_server._connection)
         mock.connect.assert_called_once()
         mock.request.assert_not_called()
 
@@ -104,8 +104,8 @@ class TestDrbObject(unittest.TestCase):
         connection.return_value = mock
         cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
         with self.assertRaises(RuntimeError):
-            cmd_tlm_server.write("test")
-        self.assertIsNone(cmd_tlm_server.connection)
+            cmd_tlm_server.write(self.test_response_none.__name__)
+        self.assertIsNotNone(cmd_tlm_server._connection)
         mock.connect.assert_called()
         mock.request.assert_called()
 
@@ -117,12 +117,12 @@ class TestDrbObject(unittest.TestCase):
         mock = MagicMock()
         mock.connect.return_value = MagicMock()
         mock.request.request = MagicMock()
-        mock.getresponse.side_effect = ConnectionResetError("test")
+        mock.getresponse.read.side_effect = ConnectionResetError("test")
         connection.return_value = mock
         cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
         with self.assertRaises(RuntimeError):
-            cmd_tlm_server.write("test")
-        self.assertIsNone(cmd_tlm_server.connection)
+            cmd_tlm_server.write(self.test_response_error.__name__)
+        self.assertIsNotNone(cmd_tlm_server._connection)
         mock.connect.assert_called()
         mock.request.assert_called()
 
@@ -149,7 +149,7 @@ class TestDrbObject(unittest.TestCase):
         """
         connection.return_value = mock
         cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
-        response = cmd_tlm_server.write("test")
+        response = cmd_tlm_server.write(self.test_response_result_error.__name__)
         self.assertIsNotNone(response)
         mock.connect.assert_called_once()
         mock.request.assert_called_once()
@@ -167,10 +167,9 @@ class TestDrbObject(unittest.TestCase):
         )
         connection.return_value = mock
         cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
-        with self.assertRaises(RuntimeError) as context:
-            cmd_tlm_server.write("test")
-            print(context)
-        self.assertIsNotNone(cmd_tlm_server.connection)
+        with self.assertRaises(RuntimeError):
+            cmd_tlm_server.write(self.test_response_result_invalid.__name__)
+        self.assertIsNotNone(cmd_tlm_server._connection)
         mock.connect.assert_called_once()
         mock.request.assert_called_once()
 

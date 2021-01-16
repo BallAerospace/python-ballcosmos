@@ -1,7 +1,5 @@
 import os
 import sys
-import time
-import threading
 
 try:
     os.environ["COSMOS_VERSION"]
@@ -46,11 +44,10 @@ for i in telemetry:
         i.result
     except AttributeError:
         print(i)
-        sys.exit(1)
 
-id = subscribe_packet_data([["INST", "HEALTH_STATUS"]])
-get_packet_data(id)
-unsubscribe_packet_data(id)
+id_ = subscribe_packet_data([["INST", "HEALTH_STATUS"]])
+get_packet_data(id_)
+unsubscribe_packet_data(id_)
 
 # commands.py
 commands = [
@@ -78,6 +75,8 @@ for i in commands:
     except AttributeError:
         print(i)
         sys.exit(1)
+
+update_scope("UPDATE")
 
 script_disconnect()
 shutdown_cmd_tlm()

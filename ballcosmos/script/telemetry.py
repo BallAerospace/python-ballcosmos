@@ -186,17 +186,17 @@ def subscribe_packet_data(packets, queue_size=1000):
     )
 
 
-def unsubscribe_packet_data(id):
+def unsubscribe_packet_data(id_):
     """Unsubscribe to telemetry packets. Pass the queue ID which was returned by
     the subscribe_packet_data method.
     Usage:
       unsubscribe_packet_data(id)
     """
-    return ballcosmos.script.script.cmd_tlm_server.write("unsubscribe_packet_data", id)
+    return ballcosmos.script.script.cmd_tlm_server.write("unsubscribe_packet_data", id_)
 
 
-def get_packet_data(id, non_block=False):
+def get_packet_data(id_, non_block=False):
     """DEPRECATED - Currently the only option on python until we have config file parsing though"""
     return ballcosmos.script.script.cmd_tlm_server.write(
-        "get_packet_data", id, non_block
+        "get_packet_data", id_, non_block
     )

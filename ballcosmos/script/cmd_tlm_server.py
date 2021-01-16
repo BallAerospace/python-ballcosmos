@@ -237,15 +237,15 @@ def subscribe_server_messages(queue_size=DEFAULT_SERVER_MESSAGES_QUEUE_SIZE):
     )
 
 
-def unsubscribe_server_messages(id):
+def unsubscribe_server_messages(id_):
     return ballcosmos.script.script.cmd_tlm_server.write(
-        "unsubscribe_server_messages", id
+        "unsubscribe_server_messages", id_
     )
 
 
-def get_server_message(id, non_block=False):
+def get_server_message(id_, non_block=False):
     return ballcosmos.script.script.cmd_tlm_server.write(
-        "get_server_message", id, non_block
+        "get_server_message", id_, non_block
     )
 
 
@@ -257,7 +257,7 @@ def cmd_tlm_clear_counters():
     return ballcosmos.script.script.cmd_tlm_server.write("cmd_tlm_clear_counters")
 
 
-def get_output_logs_filenames(filter="*tlm.bin"):
+def get_output_logs_filenames(filter_="*tlm.bin"):
     return ballcosmos.script.script.cmd_tlm_server.write(
-        "get_output_logs_filenames", filter
+        "get_output_logs_filenames", filter_
     )

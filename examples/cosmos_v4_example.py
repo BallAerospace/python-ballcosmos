@@ -1,5 +1,4 @@
 import sys
-import time
 import threading
 
 sys.path.append("C:/git/python-ballcosmos")
@@ -9,7 +8,7 @@ import os
 try:
     os.environ["COSMOS_USERPATH"]
 except KeyError:
-    os.environ["COSMOS_USERPATH"] = "C:/git/COSMOS/demo"
+    os.environ["COSMOS_USERPATH"] = "C:/COSMOS/Demo"
 
 try:
     os.environ["COSMOS_VERSION"]
@@ -21,10 +20,14 @@ try:
 except KeyError:
     os.environ["COSMOS_DEBUG"] = ""
 
+FILE_PATH = os.path.dirname(os.path.abspath(__file__))
+print(FILE_PATH)
 
 from ballcosmos.script import *
 
 print(ballcosmos.top_level.USERPATH)
+
+update_scope("TACO")
 
 set_replay_mode(False)
 
@@ -86,7 +89,7 @@ print(cmd_raw_no_range_check("INST COLLECT with TYPE 0, TEMP 50.0"))
 print(cmd_raw_no_hazardous_check("INST CLEAR"))
 print(cmd_raw_no_checks("INST COLLECT with TYPE 1, TEMP 50.0"))
 print(send_raw("EXAMPLE_INT", "\x00\x00\x00\x00"))
-print(send_raw_file("EXAMPLE_INT", "C:\git\COSMOS\README.md"))
+print(send_raw_file("EXAMPLE_INT", os.path.join(FILE_PATH, "test.txt")))
 print(get_cmd_list("INST"))
 print(get_cmd_param_list("INST", "COLLECT"))
 print(get_cmd_hazardous("INST", "CLEAR"))

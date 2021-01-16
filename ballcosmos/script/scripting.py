@@ -22,7 +22,7 @@ def status_bar(message):
 def ask_string(question, blank_or_default=False, password=False):
     answer = ""
     default = ""
-    if blank_or_default != True and blank_or_default != False:
+    if blank_or_default is True and blank_or_default is False:
         question += " (default = {:s})".format(str(blank_or_default))
         allow_blank = True
     else:
@@ -101,7 +101,7 @@ def prompt_for_hazardous(target_name, cmd_name, hazardous_description):
 
 def prompt_for_script_abort():
     answer = input("Stop running script? (y,n): ")
-    if answer.downcase == "y":
+    if answer.lower() == "y":
         exit()
     else:
         return False  # Not aborted - Retry
