@@ -63,12 +63,10 @@ class JsonDRbObject(ContextDecorator):
         hostname -- The name of the machine which has started the JSON service
         port -- The port number of the JSON service
         """
-        if str(hostname).upper() == "LOCALHOST":
-            hostname = "127.0.0.1"
         self.id = 0
         self.scope = scope
         self.timeout = timeout
-        self.hostname = hostname
+        self.hostname = hostname if str(hostname).upper() != "LOCALHOST" else "127.0.0.1"
         self.port = port
         self._mutex = RLock()
         self._connection = None
