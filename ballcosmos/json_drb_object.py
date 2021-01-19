@@ -47,10 +47,10 @@ class JsonDRbObject(ContextDecorator):
     """Class to perform JSON-RPC Calls to the COSMOS Server (or other JsonDrb server)
 
     The JsonDRbObject can be used to call COSMOS server methods directly:
-      server = JsonDRbObject('127.0.0.1', 7777)
+      server = JsonDRbObject("127.0.0.1", 7777)
       server.cmd(...)
       or
-      with JsonDRbObject('127.0.0.1', 7777) as server:
+      with JsonDRbObject("127.0.0.1", 7777) as server:
         server.cmd(...)
     """
 
@@ -66,7 +66,7 @@ class JsonDRbObject(ContextDecorator):
         self.id = 0
         self.scope = scope
         self.timeout = timeout
-        self.hostname = hostname if str(hostname).upper() != "LOCALHOST" else "127.0.0.1"
+        self.hostname = hostname if hostname.upper() != "LOCALHOST" else "127.0.0.1"
         self.port = port
         self._mutex = RLock()
         self._connection = None
