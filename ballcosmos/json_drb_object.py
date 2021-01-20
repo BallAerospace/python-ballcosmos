@@ -55,17 +55,19 @@ class JsonDRbObject(ContextDecorator):
     """
 
     def __init__(
-        self, hostname: str, port: int, timeout: float = 5, scope: str = COSMOS_SCOPE
+        self, hostname: str, port: int, timeout: float = 5.0, scope: str = COSMOS_SCOPE
     ):
         """Constructor
 
         Parameters:
         hostname -- The name of the machine which has started the JSON service
         port -- The port number of the JSON service
+        timeout -- The amount of time the socket will read until an error
+        scope -- The scope or project the connection will add to the request
         """
         self.id = 0
         self.scope = scope
-        self.timeout = timeout
+        self.timeout = float(timeout)
         self.hostname = hostname if hostname.upper() != "LOCALHOST" else "127.0.0.1"
         self.port = port
         self._mutex = RLock()
@@ -144,20 +146,20 @@ class JsonDRbObject(ContextDecorator):
     def _connect(self):
         exception_ = None
         for i in range(MAX_RETRY_COUNT):
+            logger.debug("connect try %d out of %d", i, MAX_RETRY_COUNT)
             try:
-                logger.debug("connect try %d out of %d", i, MAX_RETRY_COUNT)
-                self._connection = HTTPConnection(self.hostname, self.port)
-                self._connection.timeout = self.timeout
+                self._connection = HTTPConnection(
+                    self.hostname,
+                    self.port,
+                    timeout=self.timeout,
+                )
                 self._connection.connect()
                 exception_ = None
                 break
             except ConnectionRefusedError as e:
                 exception_ = e
                 time.sleep(1)
-            except ConnectionError as e:
-                exception_ = e
-                break
-            except Exception as e:
+            except OSError as e:
                 exception_ = e
                 break
 
@@ -187,7 +189,7 @@ class JsonDRbObject(ContextDecorator):
             response_data = self._connection.getresponse().read()
             logger.debug("response: %s", response_data)
             return response_data
-        except ConnectionError as e:
+        except OSError as e:
             raise BallCosmosConnectionError(
                 "failed to make request: {}".format(request)
             ) from e

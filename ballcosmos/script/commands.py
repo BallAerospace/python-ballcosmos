@@ -47,20 +47,20 @@ def _log_cmd(target_name, cmd_name, cmd_params, raw, no_range, no_hazardous):
 
 
 def _cmd(cmd, cmd_no_hazardous, *args, **kwargs):
-    """Send the command and log the results
-    NOTE: This is a helper method and should not be called directly"""
+    """
+    Send the command and log the results
+    NOTE: This is a helper method and should not be called directly
+    """
     raw = "raw" in cmd
     no_range = "no_range" in cmd or "no_checks" in cmd
     no_hazardous = "no_hazardous" in cmd or "no_checks" in cmd
 
     while True:
         try:
-            (
-                target_name,
-                cmd_name,
-                cmd_params,
-            ) = ballcosmos.script.script.cmd_tlm_server.write(cmd, *args)
-            _log_cmd(target_name, cmd_name, cmd_params, raw, no_range, no_hazardous)
+            data = ballcosmos.script.script.cmd_tlm_server.write(cmd, *args)
+            if "error" not in data:
+                target_name, cmd_name, cmd_params = data
+                _log_cmd(target_name, cmd_name, cmd_params, raw, no_range, no_hazardous)
         except HazardousError as e:
             ok_to_proceed = prompt_for_hazardous(
                 e.target_name, e.cmd_name, e.hazardous_description

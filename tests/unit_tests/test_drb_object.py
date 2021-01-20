@@ -151,6 +151,25 @@ class TestDrbObject(unittest.TestCase):
         mock.request.assert_not_called()
 
     @patch("ballcosmos.json_drb_object.HTTPConnection")
+    def test_response_timeout_error(self, connection):
+        """
+        Test connection
+        """
+        from socket import timeout
+
+        mock = MagicMock()
+        mock.connect.return_value = MagicMock()
+        mock.request.request = MagicMock()
+        mock.getresponse.read.side_effect = timeout("timed out test")
+        connection.return_value = mock
+        cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
+        with self.assertRaises(RuntimeError):
+            cmd_tlm_server.write(self.test_response_error.__name__)
+        self.assertIsNotNone(cmd_tlm_server._connection)
+        mock.connect.assert_called()
+        mock.request.assert_called()
+
+    @patch("ballcosmos.json_drb_object.HTTPConnection")
     def test_response_none(self, connection):
         """
         Test connection
