@@ -24,13 +24,8 @@ class JsonRpcResponse(JsonRpc):
         super().__init__()
         self["id"] = id_
 
-    @property
-    def result(self):
-        """"Return the result of the method request"""
-        return self["result"]
-
     @classmethod
-    def from_json(cls, response_data):
+    def from_json(cls, response_data: bytes):
         """Creates a JsonRpcResponse object from a JSON encoded String.
 
         The version must be 2.0 and the JSON must include the id members. It must also
@@ -44,14 +39,14 @@ class JsonRpcResponse(JsonRpc):
         try:
             hash_ = json.loads(response_data.decode("latin-1"))
         except Exception as e:
-            raise (msg + " : " + repr(e))
+            raise RuntimeError(msg, response_data) from e
 
         try:
             # Verify the jsonrpc version is correct and there is an ID
             if hash_["jsonrpc"] != JSON_RPC_VERSION:
                 raise BallCosmosResponseError(msg)
-        except (ValueError, KeyError) as e:
-            raise BallCosmosResponseError(msg) from e
+        except KeyError as e:
+            raise BallCosmosResponseError(msg, response_data) from e
 
         try:
             return JsonRpcErrorResponse.from_hash(hash_)
@@ -63,7 +58,7 @@ class JsonRpcResponse(JsonRpc):
         except KeyError:
             pass
 
-        raise BallCosmosResponseError(msg)
+        raise BallCosmosResponseError(msg, response_data)
 
 
 def convert_bytearray_to_string_raw(object_):
@@ -118,14 +113,14 @@ def convert_json_class(object_):
 class JsonRpcSuccessResponse(JsonRpcResponse):
     """Represents a JSON Remote Procedure Call Success Response"""
 
-    def __init__(self, result, id_):
+    def __init__(self, id_, result):
         """Constructor
 
         Parameters:
         id -- The identifier which will be matched to the request
+        result -- The result of the request
         """
-
-        JsonRpcResponse.__init__(self, id_)
+        super().__init__(id_)
         result = convert_json_class(result)
         self["result"] = result
 
@@ -141,24 +136,21 @@ class JsonRpcSuccessResponse(JsonRpcResponse):
         Parameters
         hash_ -- Hash containing the following keys: result and id
         """
-        return cls(hash_["result"], hash_["id"])
+        return cls(hash_["id"], hash_["result"])
 
 
 class JsonRpcErrorResponse(JsonRpcResponse):
     """Represents a JSON Remote Procedure Call Error Response"""
 
-    def __init__(self, error, id_):
+    def __init__(self, id_, error):
         """Constructor
 
         Parameters:
-        error -- The error object
         id -- The identifier which will be matched to the request
+        error -- The error object
         """
-
-        JsonRpcResponse.__init__(self, id_)
-        self["error"] = JsonRpcError(
-            error.get("code"), error.get("message"), error.get("data")
-        )
+        super().__init__(id_)
+        self["error"] = JsonRpcError.from_hash(error)
 
     @property
     def error(self):
@@ -172,4 +164,4 @@ class JsonRpcErrorResponse(JsonRpcResponse):
         Parameters:
         hash -- Hash containing the following keys: error and id
         """
-        return cls(JsonRpcError.from_hash(hash_["error"]), hash_["id"])
+        return cls(hash_["id"], hash_["error"])

@@ -15,21 +15,31 @@ json_drb_object.py
 
 import time
 import json
+import logging
 from http.client import HTTPConnection
-from threading import RLock
+from threading import RLock, Event
 from contextlib import ContextDecorator
 
-from ballcosmos.environment import MAX_RETRY_COUNT, X_CSRF_TOKEN
-from ballcosmos.exceptions import (
-    BallCosmosConnectionError,
-    BallCosmosRequestError,
-    BallCosmosResponseError,
+from ballcosmos import __title__
+from ballcosmos.environment import (
+    COSMOS_VERSION,
+    COSMOS_SCOPE,
+    LOG_LEVEL,
+    MAX_RETRY_COUNT,
+    USER_AGENT,
+    X_CSRF_TOKEN,
 )
+from ballcosmos.exceptions import BallCosmosConnectionError
 from ballcosmos.json_rpc import (
     JsonRpcRequest,
     JsonRpcResponse,
-    JsonRpcErrorResponse,
     convert_bytearray_to_string_raw,
+)
+
+logger = logging.getLogger(__title__)
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    level=logging.getLevelName(LOG_LEVEL),
 )
 
 
@@ -37,43 +47,41 @@ class JsonDRbObject(ContextDecorator):
     """Class to perform JSON-RPC Calls to the COSMOS Server (or other JsonDrb server)
 
     The JsonDRbObject can be used to call COSMOS server methods directly:
-      server = JsonDRbObject('127.0.0.1', 7777)
+      server = JsonDRbObject("127.0.0.1", 7777)
       server.cmd(...)
       or
-      with JsonDRbObject('127.0.0.1', 7777) as server:
+      with JsonDRbObject("127.0.0.1", 7777) as server:
         server.cmd(...)
     """
 
-    def __init__(self, hostname: str, port: int, connect_timeout: float = 1.0):
+    def __init__(
+        self, hostname: str, port: int, timeout: float = 5.0, scope: str = COSMOS_SCOPE
+    ):
         """Constructor
 
         Parameters:
         hostname -- The name of the machine which has started the JSON service
         port -- The port number of the JSON service
+        timeout -- The amount of time the socket will read until an error
+        scope -- The scope or project the connection will add to the request
         """
-        if str(hostname).upper() == "LOCALHOST":
-            hostname = "127.0.0.1"
-        self.timeout = None
-        self.hostname = hostname
-        self.port = port
-        self.mutex = RLock()
-        self.connection = None
-        self.socket = None
         self.id = 0
-        self.debug = False
-        self.request_in_progress = False
-        self.connect_timeout = connect_timeout
-        if self.connect_timeout is not None:
-            self.connect_timeout = float(self.connect_timeout)
-        self.shutdown_needed = False
+        self.scope = scope
+        self.timeout = float(timeout)
+        self.hostname = hostname if hostname.upper() != "LOCALHOST" else "127.0.0.1"
+        self.port = port
+        self._mutex = RLock()
+        self._connection = None
+        self._shutdown_needed = Event()
+        self.api_url = "/" if COSMOS_VERSION == "4" else "/api"
 
     def __enter__(self):
-        if self.shutdown_needed:
+        if self._shutdown_needed.is_set():
             raise BallCosmosConnectionError(
-                "Shutdown needed: {}".format(self.shutdown_needed)
+                "Shutdown needed: {}".format(self._shutdown_needed)
             )
 
-        if self.connection is None or self.request_in_progress:
+        if self._connection is None:
             self._connect()
         return self
 
@@ -84,12 +92,13 @@ class JsonDRbObject(ContextDecorator):
                 # f'Exception during thread execution: {exc_type} {exc_val}'
         finally:
             self.disconnect()
+            self._connection = None
         return False
 
     def disconnect(self):
         """Disconnects from the JSON server"""
-        if self.connection:
-            self.connection.close()
+        if self._connection:
+            self._connection.close()
         # Cannot set @connection to None here because this method can be called by
         # other threads and @connection being None would cause unexpected errors in method_missing
         # Also don't want to take the mutex so that we can interrupt method_missing if necessary
@@ -97,131 +106,100 @@ class JsonDRbObject(ContextDecorator):
 
     def shutdown(self):
         """Permanently disconnects from the JSON server"""
-        self.shutdown_needed = True
+        self._shutdown_needed.set()
         self.disconnect()
 
-    def write(self, method_name, *method_params):
+    def write(self, method_name, *args):
         """Forwards all method calls to the remote service.
 
         method_name -- Name of the method to call
-        method_params -- Array of parameters to pass to the method
+        args -- Array of parameters to pass to the method
         return -- The result of the method call. If the method raises an exception
           the same exception is also raised. If something goes wrong with the
           protocol a DRb::DRbConnError exception is raised.
         """
-
-        with self.mutex:
+        with self._mutex:
             # This flag and loop are used to automatically reconnect and retry if something goes
             # wrong on the first attempt writing to the socket.   Sockets can become disconnected
             # between function calls, but as long as the remote server is back up and running the
             # call should succeed even when it discovers a broken socket on the first attempt.
-            first_try = True
+            request = JsonRpcRequest(self.id, method_name, self.scope, *args)
+            self.id += 1
             while True:
-                if self.shutdown_needed:
+                logger.debug("write try for request %s", request)
+                if self._shutdown_needed.is_set():
                     raise BallCosmosConnectionError(
-                        "Shutdown needed: {}".format(self.shutdown_needed)
+                        "shutdown needed event: {}".format(
+                            self._shutdown_needed.is_set()
+                        )
                     )
-
-                if self.connection is None or self.request_in_progress:
+                if self._connection is None:
                     self._connect()
-
-                response = self._make_request(method_name, method_params, first_try)
-                if response is None:
+                try:
+                    response = self._make_request(request)
+                    return self._handle_response(response)
+                except BallCosmosConnectionError:
                     self.disconnect()
-                    self.connection = None
-                    was_first_try = first_try
-                    first_try = False
-                    if was_first_try:
-                        continue
-
-                return self._handle_response(response)
+                    self._connection = None
+                time.sleep(1)
 
     def _connect(self):
-        if self.request_in_progress:
-            self.disconnect()
-            self.connection = None
-            self.request_in_progress = False
-
         exception_ = None
         for i in range(MAX_RETRY_COUNT):
+            logger.debug("connect try %d out of %d", i, MAX_RETRY_COUNT)
             try:
-                if self.debug:
-                    print("connect try {} out of {}".format(i, MAX_RETRY_COUNT))
-
-                self.connection = HTTPConnection(self.hostname, self.port)
-                self.timeout = self.connect_timeout
-                self.connection.connect()
+                self._connection = HTTPConnection(
+                    self.hostname,
+                    self.port,
+                    timeout=self.timeout,
+                )
+                self._connection.connect()
                 exception_ = None
                 break
             except ConnectionRefusedError as e:
                 exception_ = e
                 time.sleep(1)
-            except ConnectionError as e:
-                exception_ = e
-                break
-            except Exception as e:
+            except OSError as e:
                 exception_ = e
                 break
 
         if exception_ is not None:
-            if self.debug:
-                print("connect failed {}".format(exception_))
+            logger.debug("connect failed %s", exception_)
             self.disconnect()
-            self.connection = None
+            self._connection = None
             raise BallCosmosConnectionError(
                 "failed to connection to cosmos"
             ) from exception_
 
-    def _make_request(self, method_name, method_params, first_try):
-        request = JsonRpcRequest(method_name, method_params, self.id)
-        self.id += 1
-
+    def _make_request(self, request: dict):
         hash_ = convert_bytearray_to_string_raw(request)
-        request_data = json.dumps(hash_)
+        request_kwargs = {
+            "method": "POST",
+            "url": self.api_url,
+            "body": json.dumps(hash_),
+            "headers": {
+                "User-Agent": USER_AGENT,
+                "Content-Type": "application/json-rpc",
+                "X_CSRF_TOKEN": X_CSRF_TOKEN,
+            },
+        }
+        logger.debug("request: %s", request_kwargs)
         try:
-            if self.debug:
-                print("Request:\n{}".format(request_data))
-            self.request_in_progress = True
-            self.connection.request(
-                method="POST",
-                url="/",
-                body=request_data,
-                headers={
-                    "Content-Type": "application/json-rpc",
-                    "X_CSRF_TOKEN": X_CSRF_TOKEN,
-                },
-            )
-            response = self.connection.getresponse()
-            response_data = response.read()
-            self.request_in_progress = False
-            if self.debug:
-                print("Response:\n{}".format(response_data))
-        except Exception as e:
-            self.disconnect()
-            self.connection = None
-            if first_try:
-                return None
-            else:
-                raise BallCosmosRequestError(
-                    "failed to make request: {}".format(request)
-                ) from e
-        return response_data
+            self._connection.request(**request_kwargs)
+            response_data = self._connection.getresponse().read()
+            logger.debug("response: %s", response_data)
+            return response_data
+        except OSError as e:
+            raise BallCosmosConnectionError(
+                "failed to make request: {}".format(request)
+            ) from e
 
-    def _handle_response(self, response_data):
+    @staticmethod
+    def _handle_response(response_data: bytes):
         # The code below will always either raise or return breaking out of the loop
-        if response_data is None:
-            # Socket was closed by server
-            self.disconnect()
-            self.socket = None
-            raise BallCosmosResponseError("socket closed by server")
-
         response = JsonRpcResponse.from_json(response_data)
-        if self.debug:
-            print("response:\n{}".format(response))
+        logger.debug("response %s %s", type(response), response)
         try:
             return response.result
         except AttributeError:
-            msg = "id {}, error code: {}, message: {}".format(
-                response.id, response.error.code, response.error.message
-            )
-            raise RuntimeError(msg, response)
+            return response

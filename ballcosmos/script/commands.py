@@ -1,6 +1,7 @@
 import logging
 from ballcosmos.script.script import *
 
+
 # This is in System.commands in Ruby
 def build_cmd_output_string(target_name, cmd_name, cmd_params, raw=False):
     if raw:
@@ -8,7 +9,7 @@ def build_cmd_output_string(target_name, cmd_name, cmd_params, raw=False):
     else:
         output_string = 'cmd("'
     output_string += target_name + " " + cmd_name
-    if cmd_params == None or len(cmd_params) == 0:
+    if cmd_params is None or len(cmd_params) == 0:
         output_string += '")'
     else:
         params = []
@@ -20,7 +21,7 @@ def build_cmd_output_string(target_name, cmd_name, cmd_params, raw=False):
                         value = value[0:256] + "...'"
                     value = value.replace('"', "'")
             params.append("{:s} {:s}".format(key, str(value)))
-        params = (", ").join(params)
+        params = ", ".join(params)
         output_string += " with " + params + '")'
     return output_string
 
@@ -45,21 +46,21 @@ def _log_cmd(target_name, cmd_name, cmd_params, raw, no_range, no_hazardous):
     return None
 
 
-def _cmd(cmd, cmd_no_hazardous, *args):
-    """Send the command and log the results
-    NOTE: This is a helper method and should not be called directly"""
+def _cmd(cmd, cmd_no_hazardous, *args, **kwargs):
+    """
+    Send the command and log the results
+    NOTE: This is a helper method and should not be called directly
+    """
     raw = "raw" in cmd
     no_range = "no_range" in cmd or "no_checks" in cmd
     no_hazardous = "no_hazardous" in cmd or "no_checks" in cmd
 
     while True:
         try:
-            (
-                target_name,
-                cmd_name,
-                cmd_params,
-            ) = ballcosmos.script.script.cmd_tlm_server.write(cmd, *args)
-            _log_cmd(target_name, cmd_name, cmd_params, raw, no_range, no_hazardous)
+            data = ballcosmos.script.script.cmd_tlm_server.write(cmd, *args)
+            if "error" not in data:
+                target_name, cmd_name, cmd_params = data
+                _log_cmd(target_name, cmd_name, cmd_params, raw, no_range, no_hazardous)
         except HazardousError as e:
             ok_to_proceed = prompt_for_hazardous(
                 e.target_name, e.cmd_name, e.hazardous_description
@@ -77,7 +78,6 @@ def _cmd(cmd, cmd_no_hazardous, *args):
                 if not prompt_for_script_abort():
                     continue
         break
-        return None
 
 
 def cmd(*args):
@@ -169,7 +169,6 @@ def send_raw(interface_name, data):
 
 def send_raw_file(interface_name, filename):
     """Sends raw data through an interface from a file"""
-    data = None
     with open(filename, "rb") as file:
         data = file.read()
     return ballcosmos.script.script.cmd_tlm_server.write(
@@ -193,7 +192,7 @@ def get_cmd_param_list(target_name, cmd_name):
 
 def get_cmd_hazardous(target_name, cmd_name, cmd_params=None):
     """Returns whether a command is hazardous (true or false)"""
-    if cmd_params == None:
+    if cmd_params is None:
         cmd_params = {}
     return ballcosmos.script.script.cmd_tlm_server.write(
         "get_cmd_hazardous", target_name, cmd_name, cmd_params

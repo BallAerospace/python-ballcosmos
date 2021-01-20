@@ -6,10 +6,9 @@ json_rpc/error.py
 """
 
 from ballcosmos.environment import JSON_RPC_VERSION
-from ballcosmos.json_rpc.base import JsonRpc
 
 
-class JsonRpcError(JsonRpc):
+class JsonRpcError(dict):
     """Represents a JSON Remote Procedure Call Error"""
 
     def __init__(self, code, message, data=None):
@@ -48,8 +47,8 @@ class JsonRpcError(JsonRpc):
         hash -- Hash containing the following keys: code, message, and optionally data
         """
         try:
-            if int(hash_["code"]) == hash_["code"]:
-                return cls(hash_["code"], hash_["message"], hash_["data"])
-        except (ValueError, LookupError) as err:
+            code = int(hash_["code"])
+            return cls(code, hash_["message"], hash_["data"])
+        except ValueError as err:
             error = "Invalid JSON-RPC {}".format(JSON_RPC_VERSION)
             raise RuntimeError("{} {}: {}".format(error, type(err), err)) from err

@@ -100,13 +100,13 @@ def subscribe_limits_events(queue_size=1000):
     )
 
 
-def unsubscribe_limits_events(id):
+def unsubscribe_limits_events(id_):
     return ballcosmos.script.script.cmd_tlm_server.write(
-        "unsubscribe_limits_events", id
+        "unsubscribe_limits_events", id_
     )
 
 
-def get_limits_event(id, non_block=False):
+def get_limits_event(id_, non_block=False):
     return ballcosmos.script.script.cmd_tlm_server.write(
-        "get_limits_event", id, non_block
+        "get_limits_event", id_, non_block
     )

@@ -19,7 +19,7 @@ with open(path.join(here, "ballcosmos/__init__.py"), encoding="utf-8") as f:
     exec(f.read(), meta)
 
 # Get the long description from the README file
-with open(path.join(here, "README.rst"), encoding="utf-8") as f:
+with open(path.join(here, "README.md"), encoding="utf-8") as f:
     meta["long_description"] = f.read()
 
 
@@ -30,7 +30,7 @@ setup(
     # https://packaging.python.org/en/latest/single_source_version.html
     version=meta["__version__"],
     description=meta["__description__"],
-    long_description_content_type="text/x-rst",
+    long_description_content_type="text/markdown",
     long_description=meta["long_description"],
     # The project's main homepage.
     url=meta["__url__"],
@@ -88,7 +88,5 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-    entry_points={
-        "console_scripts": [],
-    },
+    entry_points={"console_scripts": []},
 )

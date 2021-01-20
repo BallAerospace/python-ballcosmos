@@ -6,7 +6,10 @@ json_rpc/request.py
 """
 import json
 
-from ballcosmos.environment import JSON_RPC_VERSION
+from ballcosmos.environment import (
+    COSMOS_VERSION,
+    JSON_RPC_VERSION,
+)
 from ballcosmos.exceptions import BallCosmosRequestError
 from ballcosmos.json_rpc.base import JsonRpc
 
@@ -16,31 +19,44 @@ class JsonRpcRequest(JsonRpc):
 
     DANGEROUS_METHODS = ["__send__", "send", "instance_eval", "instance_exec"]
 
-    def __init__(self, method_name, method_params, id_):
+    def __init__(self, id_: int, method_name: str, scope: str, *args):
         """Constructor
 
         Arguments:
-        method_name -- The name of the method to call
-        method_params -- Array of strings which represent the parameters to send to the method
         id_ -- The identifier which will be matched to the response
+        method_name -- The name of the method to call
+        scope -- The scope
+        args -- Array of strings which represent the parameters to send to the method
         """
         super().__init__()
         self["method"] = str(method_name)
-        if method_params is not None and len(method_params) != 0:
-            self["params"] = method_params
+        self["params"] = args
+        if COSMOS_VERSION != "4":
+            self["keyword_params"] = {"scope": scope}
         self["id"] = int(id_)
 
+    @property
     def method(self):
         """Returns the method to call"""
         return self["method"]
 
+    @property
     def params(self):
         """Returns the array of strings which represent the parameters to send to the method"""
-        try:
-            return self["params"]
-        except KeyError:
-            return []
+        return self.get("params")
 
+    @property
+    def keyword_params(self):
+        """Returns a dictionary of strings which represent the keyword parameters to send to the method"""
+        if COSMOS_VERSION == "4":
+            raise RuntimeWarning(
+                "invalid version: ({}) keyword_params not allowed".format(
+                    COSMOS_VERSION
+                )
+            )
+        return self.get("keyword_params")
+
+    @property
     def id(self):
         """Returns the request identifier"""
         return self["id"]
@@ -71,6 +87,11 @@ class JsonRpcRequest(JsonRpc):
         """Creates a JsonRpcRequest object from a Hash
 
         Parameters:
-        hash_ -- Hash containing the following keys: method, params, and id
+        hash_ -- Hash containing the following keys: method, params, id, and keyword_params
         """
-        return cls(hash_["method"], hash_["params"], hash_["id"])
+        return cls(
+            hash_["id"],
+            hash_["method"],
+            hash_.get("keyword_params", {}).get("scope"),
+            *hash_.get("params", []),
+        )

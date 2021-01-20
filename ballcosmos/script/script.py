@@ -1,3 +1,5 @@
+import os
+
 import ballcosmos.top_level
 from ballcosmos.json_drb_object import *
 
@@ -27,9 +29,20 @@ DEFAULT_CTS_API_HOST = "127.0.0.1"
 DEFAULT_REPLAY_API_HOST = "127.0.0.1"
 
 
-def initialize_script_module(hostname=None, port=None):
+def update_scope(scope: str):
+    global cmd_tlm_server
+    cmd_tlm_server.scope = str(scope)
+    os.environ["COSMOS_SCOPE"] = str(scope)
+
+
+def initialize_script_module(hostname=None, port=None, version=None):
     global cmd_tlm_server
     global replay_mode_flag
+
+    try:
+        os.environ["COSMOS_VERSION"]
+    except KeyError:
+        os.environ["COSMOS_VERSION"] = "5" if version is None else str(version)
 
     if cmd_tlm_server:
         cmd_tlm_server.disconnect()
@@ -52,11 +65,11 @@ def script_disconnect():
     cmd_tlm_server.disconnect()
 
 
-def set_replay_mode(replay_mode, hostname=None, port=None):
+def set_replay_mode(replay_mode, hostname=None, port=None, version=None):
     global replay_mode_flag
     if replay_mode != replay_mode_flag:
         replay_mode_flag = replay_mode
-        initialize_script_module(hostname, port)
+        initialize_script_module(hostname, port, version)
 
 
 def get_replay_mode():

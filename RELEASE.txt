@@ -8,7 +8,7 @@ twine upload dist/*
 * updated request header to source X_CSRF_TOKEN from environment "COSMOS_X_CSRF_TOKEN"
 default is equal to "SuperSecret"
 * updated connection to retry on ConnectionRefusedError with count loaded from environment
-"COSMOS_MAX_RETRY_COUNT" default is equal to 3. If a ConnectionRefusedError occurrs will 
+"COSMOS_MAX_RETRY_COUNT" default is equal to 3. If a ConnectionRefusedError occurrs will
 wait one second between connection requests
 * made json_rpc a package
 * added some unit tests
