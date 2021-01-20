@@ -5,6 +5,7 @@
 test_drb_object.py
 """
 
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 
@@ -23,6 +24,63 @@ class TestDrbObject(unittest.TestCase):
         cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
         connect.assert_not_called()
         self.assertIsNone(cmd_tlm_server._connection)
+
+    @patch("ballcosmos.json_drb_object.HTTPConnection.connect")
+    def test_object_localhost(self, connect):
+        """
+        Test json request
+        """
+        cmd_tlm_server = JsonDRbObject("LOCALHOST", self.PORT)
+        connect.assert_not_called()
+        self.assertIsNone(cmd_tlm_server._connection)
+        self.assertEqual(cmd_tlm_server.hostname, self.HOST)
+
+    @patch("ballcosmos.json_drb_object.HTTPConnection.connect")
+    def test_object_tacocat(self, connect):
+        """
+        Test json request
+        """
+        hostname = "tacocat"
+        cmd_tlm_server = JsonDRbObject(hostname, self.PORT)
+        connect.assert_not_called()
+        self.assertIsNone(cmd_tlm_server._connection)
+        self.assertEqual(cmd_tlm_server.hostname, hostname)
+
+    @patch("ballcosmos.json_drb_object.HTTPConnection.connect")
+    def test_object_cosmos_version_5(self, connect):
+        """
+        Test json request
+        """
+        os.environ["COSMOS_VERSION"] = "5"
+        import importlib
+        import ballcosmos.environment as e
+
+        importlib.reload(e)
+        import ballcosmos.json_drb_object as j
+
+        importlib.reload(j)
+        cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
+        connect.assert_not_called()
+        self.assertIsNone(cmd_tlm_server._connection)
+        self.assertEqual(cmd_tlm_server.api_url, "/api")
+
+    @patch("ballcosmos.json_drb_object.HTTPConnection.connect")
+    def test_object_cosmos_version_4(self, connect):
+        """
+        Test json request
+        """
+        os.environ["COSMOS_VERSION"] = "4"
+        import importlib
+        import ballcosmos.environment as e
+
+        importlib.reload(e)
+        import ballcosmos.json_drb_object as j
+
+        importlib.reload(j)
+        cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
+        connect.assert_not_called()
+        self.assertIsNone(cmd_tlm_server._connection)
+        self.assertEqual(cmd_tlm_server.api_url, "/")
 
     @patch("ballcosmos.json_drb_object.HTTPConnection")
     def test_connection(self, connection):
