@@ -5,7 +5,7 @@ from ballcosmos.environment import (
     COSMOS_HOSTNAME,
     COSMOS_PORT,
     COSMOS_V4_REPLAY_HOSTNAME,
-    COSMOS_V4_REPLAY_PORT
+    COSMOS_V4_REPLAY_PORT,
 )
 from ballcosmos.json_drb_object import *
 
@@ -29,6 +29,7 @@ class HazardousError(RuntimeError):
 cmd_tlm_server = None
 replay_mode_flag = False
 
+
 def update_scope(scope: str):
     global cmd_tlm_server
     cmd_tlm_server.scope = str(scope)
@@ -51,7 +52,9 @@ def initialize_script_module(hostname=None, port=None, version=None):
         cmd_tlm_server = JsonDRbObject(hostname, port)
     else:
         if replay_mode_flag:
-            cmd_tlm_server = JsonDRbObject(COSMOS_V4_REPLAY_HOSTNAME, COSMOS_V4_REPLAY_PORT)
+            cmd_tlm_server = JsonDRbObject(
+                COSMOS_V4_REPLAY_HOSTNAME, COSMOS_V4_REPLAY_PORT
+            )
         else:
             cmd_tlm_server = JsonDRbObject(COSMOS_HOSTNAME, COSMOS_PORT)
 

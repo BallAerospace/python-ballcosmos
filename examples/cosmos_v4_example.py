@@ -24,7 +24,7 @@ except KeyError:
 
 # Updated from v0 to v1 for the ballcosmos libaray. In v1 you MUST set the port
 # for all cosmos v4 scripts. In v0 of ballcosmos the port was hard coded and
-# would default to 7777 for Cosmos v4. In v1 the port can be set via an environment variable 
+# would default to 7777 for Cosmos v4. In v1 the port can be set via an environment variable
 # `COSMOS_PORT` to the network port of the computer running Cosmos. Note the new
 # port for Cosmos v5 is 2900
 
@@ -36,7 +36,7 @@ except KeyError:
 
 # Updated from v0 to v1 for the ballcosmos libaray. In v1 the libary can log
 # much more of what is happening in the libary. If you wish to enable this you
-# MUST set the environment variable `COSMOS_DEBUG` to equal "DEBUG". If this 
+# MUST set the environment variable `COSMOS_DEBUG` to equal "DEBUG". If this
 # is not set you will not get log messages if this is an incorrect log level
 # you will get a ValueError.
 
