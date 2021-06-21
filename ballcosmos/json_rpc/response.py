@@ -28,7 +28,7 @@ class JsonRpcResponse(JsonRpc):
         """Constructor
 
         Parameters:
-        id -- The identifier which will be matched to the request
+        id_ -- The identifier which will be matched to the request
         """
         super().__init__()
         self["id"] = id_
@@ -37,8 +37,9 @@ class JsonRpcResponse(JsonRpc):
     def from_json(cls, response_data: bytes):
         """Creates a JsonRpcResponse object from a JSON encoded String.
 
-        The version must be 2.0 and the JSON must include the id members. It must also
-        include either result for success or error for failure but never both.
+        The version must be 2.0 and the JSON must include the id members. It
+        must also include either result for success or error for failure but
+        never both.
 
         Parameters:
         response_data -- JSON encoded string representing the response
@@ -126,7 +127,7 @@ class JsonRpcSuccessResponse(JsonRpcResponse):
         """Constructor
 
         Parameters:
-        id -- The identifier which will be matched to the request
+        id_ -- The identifier which will be matched to the request
         result -- The result of the request
         """
         super().__init__(id_)
