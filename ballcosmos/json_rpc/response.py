@@ -136,7 +136,7 @@ class JsonRpcSuccessResponse(JsonRpcResponse):
 
     @property
     def result(self):
-        """"Return the result of the method request"""
+        """Return the result of the method request"""
         return self["result"]
 
     @classmethod

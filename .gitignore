@@ -1,4 +1,6 @@
 # general things to ignore
+cacert.pem
+.idea
 build/
 dist/
 *.egg-info/
