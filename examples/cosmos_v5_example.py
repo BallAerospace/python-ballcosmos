@@ -1,18 +1,50 @@
 import os
 import sys
 
+# Updated from v0 to v1 for the ballcosmos libaray. In v1 the libary is
+# expacting a version. If you are using cosmos v5 you do not need to set the
+# environment variable `COSMOS_VERSION` to equal 5 it will default to use v5.
+# If this is set the api endpoint and authentication will be correct.
+
 try:
     os.environ["COSMOS_VERSION"]
 except KeyError:
     os.environ["COSMOS_VERSION"] = "5"
+
+
+# Updated from v0 to v1 for the ballcosmos libaray. In v1 the libary can log
+# much more of what is happening in the libary. If you wish to enable this you
+# MUST set the environment variable `COSMOS_DEBUG` to equal "DEBUG". If this 
+# is not set you will not get log messages if this is an incorrect log level
+# you will get a ValueError.
 
 try:
     os.environ["COSMOS_DEBUG"]
 except KeyError:
     os.environ["COSMOS_DEBUG"] = ""
 
-FILE_PATH = os.path.dirname(os.path.abspath(__file__))
-print(FILE_PATH)
+# Updated from v0 to v1 for the ballcosmos libaray. In v1 you CAN set the hostname
+# for all Cosmos v4 scripts. In v0 of ballcosmos it would default to 127.0.0.1.
+# The hostname can now be set via an environment variable `COSMOS_HOSTNAME` to
+# network address of the computer running Cosmos.
+
+try:
+    os.environ["COSMOS_HOSTNAME"]
+except KeyError:
+    os.environ["COSMOS_HOSTNAME"] = "127.0.0.1"
+
+
+# Updated from v0 to v1 for the ballcosmos libaray. In v1 you MUST set the port
+# for all cosmos v4 scripts. In v0 of ballcosmos the port was hard coded and
+# would default to 7777 for Cosmos v4. In v1 the port can be set via an environment variable 
+# `COSMOS_PORT` to the network port of the computer running Cosmos. Note the new
+# port for Cosmos v5 is 2900
+
+try:
+    os.environ["COSMOS_PORT"]
+except KeyError:
+    os.environ["COSMOS_PORT"] = "2900"
+
 
 from ballcosmos.script import *
 
@@ -49,6 +81,7 @@ id_ = subscribe_packet_data([["INST", "HEALTH_STATUS"]])
 get_packet_data(id_)
 unsubscribe_packet_data(id_)
 
+FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 # commands.py
 commands = [
     cmd("INST ABORT"),

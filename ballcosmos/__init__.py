@@ -5,7 +5,7 @@
 __init__.py
 """
 
-# Copyright 2017 Ball Aerospace & Technologies Corp.
+# Copyright 2021 Ball Aerospace & Technologies Corp.
 # All Rights Reserved.
 #
 # This program is free software; you can modify and/or redistribute it
@@ -16,4 +16,4 @@ __init__.py
 __title__ = "ballcosmos"
 __description__ = "Python Support for Ball Aerospace COSMOS"
 __url__ = "https://github.com/BallAerospace/python-ballcosmos"
-__version__ = "1.0.0"
+__version__ = "1.0.1"

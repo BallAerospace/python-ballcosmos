@@ -1,34 +1,64 @@
-import sys
 import threading
-
-sys.path.append("C:/git/python-ballcosmos")
-
 import os
 
-try:
-    os.environ["COSMOS_USERPATH"]
-except KeyError:
-    os.environ["COSMOS_USERPATH"] = "C:/COSMOS/Demo"
+# Updated from v0 to v1 for the ballcosmos libaray. In v1 the libary is
+# expacting a version. If you are using cosmos v4 you MUST set the
+# environment variable `COSMOS_VERSION` to equal 4. If this is not set the
+# api endpoint and authentication will be incorrect.
 
 try:
     os.environ["COSMOS_VERSION"]
 except KeyError:
     os.environ["COSMOS_VERSION"] = "4"
 
+# Updated from v0 to v1 for the ballcosmos libaray. In v1 you CAN set the hostname
+# for all Cosmos v4 scripts. In v0 of ballcosmos it would default to 127.0.0.1.
+# The hostname can now be set via an environment variable `COSMOS_HOSTNAME` to
+# network address of the computer running Cosmos.
+
+try:
+    os.environ["COSMOS_HOSTNAME"]
+except KeyError:
+    os.environ["COSMOS_HOSTNAME"] = "127.0.0.1"
+
+
+# Updated from v0 to v1 for the ballcosmos libaray. In v1 you MUST set the port
+# for all cosmos v4 scripts. In v0 of ballcosmos the port was hard coded and
+# would default to 7777 for Cosmos v4. In v1 the port can be set via an environment variable 
+# `COSMOS_PORT` to the network port of the computer running Cosmos. Note the new
+# port for Cosmos v5 is 2900
+
+try:
+    os.environ["COSMOS_PORT"]
+except KeyError:
+    os.environ["COSMOS_PORT"] = "7777"
+
+
+# Updated from v0 to v1 for the ballcosmos libaray. In v1 the libary can log
+# much more of what is happening in the libary. If you wish to enable this you
+# MUST set the environment variable `COSMOS_DEBUG` to equal "DEBUG". If this 
+# is not set you will not get log messages if this is an incorrect log level
+# you will get a ValueError.
+
 try:
     os.environ["COSMOS_DEBUG"]
 except KeyError:
     os.environ["COSMOS_DEBUG"] = ""
 
-FILE_PATH = os.path.dirname(os.path.abspath(__file__))
-print(FILE_PATH)
+# This is needed in v4 if you are trying to some of the script commands such as
+# save_file_dialog, open_file_dialog, open_files_dialog, open_directory_dialog
+# In this example COSMOS's is installed at C:/COSMOS and set the environment
+# variable `COSMOS_USERPATH` to the C:/COSMOS/Demo directory.
+
+try:
+    os.environ["COSMOS_USERPATH"]
+except KeyError:
+    os.environ["COSMOS_USERPATH"] = "C:/COSMOS/Demo"
+
 
 from ballcosmos.script import *
 
-print(ballcosmos.top_level.USERPATH)
-
-update_scope("TACO")
-
+# Currently this is only usable for Cosmos v4
 set_replay_mode(False)
 
 
@@ -75,9 +105,9 @@ print(
     )
 )
 print(get_tlm_buffer("INST", "HEALTH_STATUS"))
-id = subscribe_packet_data([["INST", "HEALTH_STATUS"]])
-print(get_packet_data(id))
-unsubscribe_packet_data(id)
+id_ = subscribe_packet_data([["INST", "HEALTH_STATUS"]])
+print(get_packet_data(id_))
+unsubscribe_packet_data(id_)
 
 # commands.py
 print(cmd("INST ABORT"))
@@ -89,6 +119,8 @@ print(cmd_raw_no_range_check("INST COLLECT with TYPE 0, TEMP 50.0"))
 print(cmd_raw_no_hazardous_check("INST CLEAR"))
 print(cmd_raw_no_checks("INST COLLECT with TYPE 1, TEMP 50.0"))
 print(send_raw("EXAMPLE_INT", "\x00\x00\x00\x00"))
+# send raw file to source current path
+FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 print(send_raw_file("EXAMPLE_INT", os.path.join(FILE_PATH, "test.txt")))
 print(get_cmd_list("INST"))
 print(get_cmd_param_list("INST", "COLLECT"))
@@ -123,9 +155,9 @@ print(get_limits_sets())
 print(set_limits_set("TVAC"))
 print(get_limits_set())
 print(set_limits_set("DEFAULT"))
-id = subscribe_limits_events()
-print(get_limits_event(id))
-print(unsubscribe_limits_events(id))
+id_ = subscribe_limits_events()
+print(get_limits_event(id_))
+print(unsubscribe_limits_events(id_))
 
 # cmd_tlm_server.py
 print(get_interface_names())
@@ -170,9 +202,9 @@ print(start_raw_logging_router())
 print(stop_raw_logging_router())
 print(get_server_message_log_filename())
 print(start_new_server_message_log())
-id = subscribe_server_messages()
-print(get_server_message(id))
-unsubscribe_server_messages(id)
+id_ = subscribe_server_messages()
+print(get_server_message(id_))
+unsubscribe_server_messages(id_)
 print(cmd_tlm_clear_counters())
 print(get_output_logs_filenames())
 print(cmd_tlm_reload())
@@ -213,7 +245,9 @@ print(wait_expression_stop_on_timeout("True == True", 5))
 print(wait_packet("INST", "HEALTH_STATUS", 3, 5))
 print(wait_check_packet("INST", "HEALTH_STATUS", 3, 5))
 
+# Currently this is only usable for Cosmos v4
 # replay.py
+set_replay_mode(False)
 filenames = get_output_logs_filenames()
 set_replay_mode(True)
 print(replay_select_file(filenames[-1]))
@@ -228,6 +262,7 @@ print(replay_move_start())
 print(replay_move_end())
 print(replay_move_index(0))
 
+# Currently this is only usable for Cosmos v4
 set_replay_mode(False)
 
 thread = threading.Thread(target=run_thread)

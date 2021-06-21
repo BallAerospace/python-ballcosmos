@@ -5,7 +5,7 @@
 json_drb_object.py
 """
 
-# Copyright 2017 Ball Aerospace & Technologies Corp.
+# Copyright 2021 Ball Aerospace & Technologies Corp.
 # All Rights Reserved.
 #
 # This program is free software; you can modify and/or redistribute it
@@ -22,12 +22,12 @@ from contextlib import ContextDecorator
 
 from ballcosmos import __title__
 from ballcosmos.environment import (
-    COSMOS_VERSION,
     COSMOS_SCOPE,
+    COSMOS_TOKEN,
+    COSMOS_VERSION,
     LOG_LEVEL,
     MAX_RETRY_COUNT,
     USER_AGENT,
-    X_CSRF_TOKEN,
 )
 from ballcosmos.exceptions import BallCosmosConnectionError
 from ballcosmos.json_rpc import (
@@ -73,7 +73,16 @@ class JsonDRbObject(ContextDecorator):
         self._mutex = RLock()
         self._connection = None
         self._shutdown_needed = Event()
-        self.api_url = "/" if COSMOS_VERSION == "4" else "/api"
+        self.api_url = "/"
+        self.headers = {
+            "User-Agent": USER_AGENT,
+            "Content-Type": "application/json-rpc",
+        }
+        if COSMOS_VERSION == "4":
+            self.headers["X_CSRF_TOKEN"] = COSMOS_TOKEN
+        else:
+            self.api_url = "/cosmos-api"
+            self.headers["Authorization"] = COSMOS_TOKEN
 
     def __enter__(self):
         if self._shutdown_needed.is_set():
@@ -154,6 +163,7 @@ class JsonDRbObject(ContextDecorator):
                     timeout=self.timeout,
                 )
                 self._connection.connect()
+                logger.debug("connected on try %d out of %d", i, MAX_RETRY_COUNT)
                 exception_ = None
                 break
             except ConnectionRefusedError as e:
@@ -177,11 +187,7 @@ class JsonDRbObject(ContextDecorator):
             "method": "POST",
             "url": self.api_url,
             "body": json.dumps(hash_),
-            "headers": {
-                "User-Agent": USER_AGENT,
-                "Content-Type": "application/json-rpc",
-                "X_CSRF_TOKEN": X_CSRF_TOKEN,
-            },
+            "headers": self.headers,
         }
         logger.debug("request: %s", request_kwargs)
         try:
