@@ -14,4 +14,4 @@ Installation:
 pip install ballcosmos
 ```
 
-See the examples for usage
+See the docs, examples for usage

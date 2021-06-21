@@ -62,7 +62,7 @@ class TestDrbObject(unittest.TestCase):
         cmd_tlm_server = JsonDRbObject(self.HOST, self.PORT)
         connect.assert_not_called()
         self.assertIsNone(cmd_tlm_server._connection)
-        self.assertEqual(cmd_tlm_server.api_url, "/api")
+        self.assertEqual(cmd_tlm_server.api_url, "/cosmos-api")
 
     @patch("ballcosmos.json_drb_object.HTTPConnection.connect")
     def test_object_cosmos_version_4(self, connect):
