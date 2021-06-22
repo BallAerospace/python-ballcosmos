@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 # -*- coding: latin-1 -*-
 
 # Copyright 2017 Ball Aerospace & Technologies Corp.
@@ -155,6 +157,12 @@ class JsonRpc:
   def __init__(self):
     self.hash = {}
 
+  def __str__(self):
+    return str(self.hash)
+
+  def __repr__(self):
+    return str(self.hash)
+
   #~ # @param other [JsonRpc] Another JsonRpc to compare hash values with
   #~ def <=>(other)
     #~ self.as_json <=> other.as_json
@@ -186,7 +194,7 @@ class JsonRpcRequest(JsonRpc):
     id -- The identifier which will be matched to the response
     """
 
-    JsonRpc.__init__(self)
+    super().__init__()
     self.hash['jsonrpc'] = "2.0"
     self.hash['method'] = str(method_name)
     if method_params != None and len(method_params) != 0:
@@ -247,7 +255,7 @@ class JsonRpcResponse(JsonRpc):
     id -- The identifier which will be matched to the request
     """
 
-    JsonRpc.__init__(self)
+    super().__init__()
     self.hash['jsonrpc'] = "2.0"
     self.hash['id'] = id
 
@@ -342,7 +350,7 @@ class JsonRpcSuccessResponse(JsonRpcResponse):
     id -- The identifier which will be matched to the request
     """
 
-    JsonRpcResponse.__init__(self, id)
+    super().__init__(id)
     result = convert_json_class(result)
     self.hash['result'] = result
 
@@ -370,7 +378,7 @@ class JsonRpcErrorResponse(JsonRpcResponse):
     id -- The identifier which will be matched to the request
     """
 
-    JsonRpcResponse.__init__(self, id)
+    super().__init__(id)
     self.hash['error'] = error
 
   def error(self):
@@ -398,7 +406,7 @@ class JsonRpcError(JsonRpc):
     data -- Additional information about the error
     """
 
-    JsonRpc.__init__(self)
+    super().__init__()
     self.hash['code'] = code
     self.hash['message'] = message
     self.hash['data'] = data

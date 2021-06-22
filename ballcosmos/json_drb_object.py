@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 # -*- coding: latin-1 -*-
 
 # Copyright 2017 Ball Aerospace & Technologies Corp.
@@ -8,17 +10,26 @@
 # as published by the Free Software Foundation; version 3 with
 # attribution addendums as found in the LICENSE.txt
 
-import threading
-import http.client
-import select
-import json
 import os
+import json
 import time
-import struct
-import errno
+import logging
+from http.client import HTTPConnection
+from threading import RLock, Event
+
+from ballcosmos import __title__
 from ballcosmos.json_rpc import *
 
-class DRbConnError(Exception):
+LOG_LEVEL = os.environ.get("COSMOS_LOG_LEVEL", "INFO")
+MAX_RETRY_COUNT = 3
+
+logger = logging.getLogger(__title__)
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    level=logging.getLevelName(LOG_LEVEL),
+)
+
+class DRbConnError(RuntimeError):
   pass
 
 class JsonDRbObject:
@@ -36,21 +47,17 @@ class JsonDRbObject:
     hostname -- The name of the machine which has started the JSON service
     port -- The port number of the JSON service
     """
-
-    if (str(hostname).upper() == 'LOCALHOST'):
-      hostname = '127.0.0.1'
-
-    self.hostname = hostname
-    self.port = port
-    self.mutex = threading.Lock()
-    self.connection = None
     self.id = 0
-    self.debug = False
-    self.request_in_progress = False
+    self._x_csrf_token = os.environ.get("COSMOS_X_CSRF_TOKEN", "SuperSecret")
+    self.hostname = '127.0.0.1' if str(hostname).upper() == 'LOCALHOST' else hostname
+    self.port = port
+    self.mutex = RLock()
+    self.connection = None
     self.connect_timeout = connect_timeout
-    if self.connect_timeout != None:
+    if self.connect_timeout is not None:
       self.connect_timeout = float(self.connect_timeout)
-    self.shutdown_needed = False
+    self.request_in_progress = Event()
+    self.shutdown_needed = Event()
 
   def disconnect(self):
     """Disconnects from the JSON server"""
@@ -83,71 +90,82 @@ class JsonDRbObject:
       # call should succeed even when it discovers a broken socket on the first attempt.
       first_try = True
       while True:
-        if self.shutdown_needed:
+        if self.shutdown_needed.is_set():
           raise DRbConnError("Shutdown")
 
-        if self.connection == None or self.request_in_progress:
+        if self.connection is None or self.request_in_progress.is_set():
           self.connect()
 
         response = self.make_request(method_name, method_params, first_try)
-        if response == None:
+        if response is None:
           self.disconnect()
           self.connection = None
-          was_first_try = first_try
-          first_try = False
-          if was_first_try:
+          if first_try:
+            first_try = False
             continue
 
         return self.handle_response(response)
 
   # private
-
   def connect(self):
-    if self.request_in_progress:
+    if self.request_in_progress.is_set():
       self.disconnect()
       self.connection = None
-      self.request_in_progress = False
+      self.request_in_progress.clear()
 
-    try:
-      self.connection = http.client.HTTPConnection(self.hostname,self.port)
-      self.timeout = self.connect_timeout
-      self.connection.connect()
+    exception_ = None
+    for i in range(MAX_RETRY_COUNT):
+        logger.debug("connect try %d out of %d", i, MAX_RETRY_COUNT)
+        try:
+            self.connection = HTTPConnection(
+                self.hostname,
+                self.port,
+                timeout=self.connect_timeout,
+            )
+            self.connection.connect()
+            logger.debug("connected on try %d out of %d", i, MAX_RETRY_COUNT)
+            exception_ = None
+            break
+        except ConnectionRefusedError as e:
+            exception_ = e
+            time.sleep(1)
+        except OSError as e:
+            exception_ = e
+            break
 
-      try:
-        self.connection.connect()
-      except Exception as e:
-        err = e.args[0]
+    if exception_ is not None:
+        logger.debug("connect failed %s", exception_)
         self.disconnect()
         self.connection = None
-        raise RuntimeError("Connect error")
-    except Exception as e:
-      raise DRbConnError(str(e))
+        raise RuntimeError("failed to connection to cosmos") from exception_
 
   def make_request(self, method_name, method_params, first_try):
     request = JsonRpcRequest(method_name, method_params, self.id)
     self.id += 1
-
-    hash = convert_bytearray_to_string_raw(request.hash)
-    request_data = json.dumps(hash)
+    hash_ = convert_bytearray_to_string_raw(request.hash)
+    request_kwargs = {
+        "method": "POST",
+        "url": "/",
+        "body": json.dumps(hash_),
+        "headers": {
+            "Content-Type": "application/json-rpc",
+            "X_CSRF_TOKEN": self._x_csrf_token
+        },
+    }
     try:
-      if self.debug:
-        print("Request:")
-        print(request_data)
-      self.request_in_progress = True
-      self.connection.request("POST", "/", request_data, {'Content-Type': 'application/json-rpc'})
-      response = self.connection.getresponse()
-      response_data = response.read()
-      self.request_in_progress = False
-      if self.debug:
-        print("\nResponse:")
-        print(response_data)
+      logger.debug("request: %s", request_kwargs)
+      self.request_in_progress.set()
+      self.connection.request(**request_kwargs)
+      response_data = self.connection.getresponse().read()
+      self.request_in_progress.clear()
+      logger.debug("response: %s", response_data)
     except Exception as e:
       self.disconnect()
       self.connection = None
       if first_try:
         return None
       else:
-        raise DRbConnError(str(e))
+        raise DRbConnError("failed to make request: {}".format(request)) from e
     return response_data
 
   def handle_response(self, response_data):
@@ -158,7 +176,7 @@ class JsonDRbObject:
         #~ if response.error.data
           #~ raise Exception.from_hash(response.error.data)
         #~ else
-        raise RuntimeError("JsonDRb Error ({:d}): {:s}".format(response.error().code(), response.error().message()))
+        raise RuntimeError("JsonDRb Error {}".format(response))
       else:
         return response.result()
     else:

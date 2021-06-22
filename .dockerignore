@@ -1,5 +1,8 @@
+Dockerfile
+.git
+.gitignore
+
 # general things to ignore
-cacert.pem
 .idea
 build/
 dist/
