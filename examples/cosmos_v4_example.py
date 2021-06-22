@@ -117,10 +117,6 @@ print(unsubscribe_limits_events(id_))
 
 
 # cmd_tlm_server.py
-#
-# Getting error of unknown router
-# print(get_router_info("PREID_ENTIFIED_ROUTER"))
-#
 print(get_interface_names())
 print(disconnect_interface("INST_INT"))
 print(connect_interface("INST_INT"))
@@ -136,6 +132,7 @@ print(get_target_ignored_parameters("INST"))
 print(get_target_ignored_items("INST"))
 print(get_interface_info("INST_INT"))
 print(get_all_router_info())
+print(get_router_info("PREIDENTIFIED_ROUTER"))
 print(get_all_interface_info())
 print(get_all_cmd_info())
 print(get_all_tlm_info())
