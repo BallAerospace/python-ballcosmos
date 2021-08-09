@@ -1,20 +1,29 @@
-import time
+#!/usr/bin/env python3
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+# -*- coding: latin-1 -*-
+"""
+scripting.py
+"""
+
+# Copyright 2017 Ball Aerospace & Technologies Corp.
+# All Rights Reserved.
+#
+# This program is free software; you can modify and/or redistribute it
+# under the terms of the GNU Lesser General Public License
+# as published by the Free Software Foundation; version 3 with
+# attribution addendums as found in the LICENSE.txt
+
+
 import os
-import logging
-from os import listdir
-from os.path import isfile, isdir
-from ballcosmos.script.script import *
+from ballcosmos.extract import convert_to_value
+
+PWD = os.path.dirname(os.path.abspath(__file__))
 
 def play_wav_file(wav_filename):
-  pass
-  #~ Cosmos.play_wav_file(wav_filename)
+  raise NotImplementedError()
 
 def status_bar(message):
-  pass
-  #~ if defined? ScriptRunner
-    #~ script_runner = nil
-    #~ ObjectSpace.each_object {|object| if ScriptRunner === object then script_runner = object; break; end}
-    #~ script_runner.script_set_status(message) if script_runner
+  raise NotImplementedError()
 
 def ask_string(question, blank_or_default = False, password = False):
   answer = ''
@@ -52,23 +61,23 @@ def combo_box(string, *options):
 def _file_dialog(message, directory, select_files = True):
   answer = ''
   if select_files:
-    files = [f for f in listdir(directory) if isfile(os.path.join(directory, f))]
+    files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
   else:
-    files = [f for f in listdir(directory) if isdir(os.path.join(directory, f))]
+    files = [f for f in os.listdir(directory) if os.path.isdir(os.path.join(directory, f))]
   while not answer:
     answer = input(message + "\n" + "\n".join(files) + "\n<Type file name>:")
   return answer
 
-def save_file_dialog(directory = ballcosmos.top_level.USERPATH, message = "Save File"):
+def save_file_dialog(directory = PWD, message = "Save File"):
   _file_dialog(message, directory)
 
-def open_file_dialog(directory =  ballcosmos.top_level.USERPATH, message = "Open File"):
+def open_file_dialog(directory = PWD, message = "Open File"):
   _file_dialog(message, directory)
 
-def open_files_dialog(directory =  ballcosmos.top_level.USERPATH, message = "Open File(s)"):
+def open_files_dialog(directory = PWD, message = "Open File(s)"):
   _file_dialog(message, directory)
 
-def open_directory_dialog(directory =  ballcosmos.top_level.USERPATH, message = "Open Directory"):
+def open_directory_dialog(directory = PWD, message = "Open Directory"):
   _file_dialog(message, directory, False)
 
 def prompt_for_hazardous(target_name, cmd_name, hazardous_description):

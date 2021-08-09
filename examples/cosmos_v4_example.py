@@ -2,19 +2,13 @@
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 # -*- coding: latin-1 -*-
 
-import sys
 import threading
-
 import os
 
-try:
-    os.environ["COSMOS_USERPATH"]
-except KeyError:
-    os.environ["COSMOS_USERPATH"] = "C:/COSMOS/Demo"
+os.environ["COSMOS_LOG_LEVEL"] = "DEBUG"
 
-from ballcosmos.script import *
+from ballcosmos import *
 
-print(ballcosmos.top_level.USERPATH)
 
 set_replay_mode(False)
 
@@ -170,8 +164,17 @@ print(interface_state("TEMPLATED_INT"))
 
 
 # scripting.py
-print(play_wav_file("ding.wav"))
-print(status_bar("hello"))
+try:
+    print(play_wav_file("ding.wav"))
+except NotImplementedError:
+    pass
+
+try:
+    print(status_bar("hello"))
+except NotImplementedError:
+    pass
+
+# scripting.py
 print(ask_string("Question?: "))
 print(ask("Well?: "))
 print(prompt("Hit Ok"))
@@ -204,9 +207,10 @@ print(wait_packet("INST", "HEALTH_STATUS", 3, 5))
 print(wait_check_packet("INST", "HEALTH_STATUS", 3, 5))
 
 # replay.py
-filenames = get_output_logs_filenames()
+filename = get_output_logs_filenames()[-1]
+print(filename)
 set_replay_mode(True)
-print(replay_select_file(filenames[-1]))
+print(replay_select_file(filename))
 print(replay_status())
 print(replay_set_playback_delay(1))
 print(replay_play())

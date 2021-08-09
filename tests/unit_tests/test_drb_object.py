@@ -5,18 +5,17 @@
 test_drb_object.py
 """
 
-import os
 import unittest
 from unittest.mock import patch, MagicMock
 
-from ballcosmos.json_drb_object import JsonDRbObject
+from ballcosmos.connection import JsonDRbObject
 
 
 class TestDrbObject(unittest.TestCase):
 
     HOST, PORT = "127.0.0.1", 7777
 
-    @patch("ballcosmos.json_drb_object.HTTPConnection.connect")
+    @patch("ballcosmos.connection.HTTPConnection.connect")
     def test_object(self, connect):
         """
         Test json request
@@ -25,7 +24,7 @@ class TestDrbObject(unittest.TestCase):
         connect.assert_not_called()
         self.assertIsNone(cmd_tlm_server.connection)
 
-    @patch("ballcosmos.json_drb_object.HTTPConnection.connect")
+    @patch("ballcosmos.connection.HTTPConnection.connect")
     def test_object_localhost(self, connect):
         """
         Test json request
@@ -36,7 +35,7 @@ class TestDrbObject(unittest.TestCase):
         self.assertEqual(cmd_tlm_server.hostname, self.HOST)
         self.assertEqual(cmd_tlm_server.port, self.PORT)
 
-    @patch("ballcosmos.json_drb_object.HTTPConnection.connect")
+    @patch("ballcosmos.connection.HTTPConnection.connect")
     def test_object_tacocat(self, connect):
         """
         Test json request
@@ -48,7 +47,7 @@ class TestDrbObject(unittest.TestCase):
         self.assertEqual(cmd_tlm_server.hostname, hostname)
         self.assertEqual(cmd_tlm_server.port, self.PORT)
 
-    @patch("ballcosmos.json_drb_object.HTTPConnection.connect")
+    @patch("ballcosmos.connection.HTTPConnection.connect")
     def test_object_cosmos(self, connect):
         """
         Test json request
@@ -57,7 +56,7 @@ class TestDrbObject(unittest.TestCase):
         connect.assert_not_called()
         self.assertIsNone(cmd_tlm_server.connection)
 
-    @patch("ballcosmos.json_drb_object.HTTPConnection")
+    @patch("ballcosmos.connection.HTTPConnection")
     def testconnection(self, connection):
         """
         Test connection
@@ -75,8 +74,8 @@ class TestDrbObject(unittest.TestCase):
         mock.connect.assert_called_once()
         mock.request.assert_called_once()
 
-    @patch("ballcosmos.json_drb_object.time.sleep")
-    @patch("ballcosmos.json_drb_object.HTTPConnection")
+    @patch("ballcosmos.connection.time.sleep")
+    @patch("ballcosmos.connection.HTTPConnection")
     def testconnection_refused_error(self, connection, sleep):
         """
         Test connection
@@ -92,7 +91,7 @@ class TestDrbObject(unittest.TestCase):
         mock.connect.assert_called()
         mock.request.assert_not_called()
 
-    @patch("ballcosmos.json_drb_object.HTTPConnection")
+    @patch("ballcosmos.connection.HTTPConnection")
     def testconnection_error(self, connection):
         """
         Test connection
@@ -107,7 +106,7 @@ class TestDrbObject(unittest.TestCase):
         mock.connect.assert_called_once()
         mock.request.assert_not_called()
 
-    @patch("ballcosmos.json_drb_object.HTTPConnection")
+    @patch("ballcosmos.connection.HTTPConnection")
     def test_response_timeout_error(self, connection):
         """
         Test connection
@@ -126,7 +125,7 @@ class TestDrbObject(unittest.TestCase):
         mock.connect.assert_called()
         mock.request.assert_called()
 
-    @patch("ballcosmos.json_drb_object.HTTPConnection")
+    @patch("ballcosmos.connection.HTTPConnection")
     def test_response_none(self, connection):
         """
         Test connection
@@ -143,7 +142,7 @@ class TestDrbObject(unittest.TestCase):
         mock.connect.assert_called()
         mock.request.assert_called()
 
-    @patch("ballcosmos.json_drb_object.HTTPConnection")
+    @patch("ballcosmos.connection.HTTPConnection")
     def test_response_error(self, connection):
         """
         Test connection
@@ -160,7 +159,7 @@ class TestDrbObject(unittest.TestCase):
         mock.connect.assert_called()
         mock.request.assert_called()
 
-    @patch("ballcosmos.json_drb_object.HTTPConnection")
+    @patch("ballcosmos.connection.HTTPConnection")
     def test_response_result_error(self, connection):
         """
         Test connection
@@ -189,7 +188,7 @@ class TestDrbObject(unittest.TestCase):
         mock.connect.assert_called_once()
         mock.request.assert_called_once()
 
-    @patch("ballcosmos.json_drb_object.HTTPConnection")
+    @patch("ballcosmos.connection.HTTPConnection")
     def test_response_result_invalid(self, connection):
         """
         Test connection

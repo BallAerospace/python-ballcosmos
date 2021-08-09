@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 # -*- coding: latin-1 -*-
+"""
+connection.py
+"""
 
 # Copyright 2017 Ball Aerospace & Technologies Corp.
 # All Rights Reserved.
@@ -10,18 +13,20 @@
 # as published by the Free Software Foundation; version 3 with
 # attribution addendums as found in the LICENSE.txt
 
-import os
+
 import json
 import time
 import logging
 from http.client import HTTPConnection
 from threading import RLock, Event
 
-from ballcosmos import __title__
+from ballcosmos.__version__ import __title__
 from ballcosmos.json_rpc import *
-
-LOG_LEVEL = os.environ.get("COSMOS_LOG_LEVEL", "INFO")
-MAX_RETRY_COUNT = 3
+from ballcosmos.environment import (
+  COSMOS_TOKEN,
+  LOG_LEVEL,
+  MAX_RETRY_COUNT,
+)
 
 logger = logging.getLogger(__title__)
 logging.basicConfig(
@@ -48,7 +53,7 @@ class JsonDRbObject:
     port -- The port number of the JSON service
     """
     self.id = 0
-    self._x_csrf_token = os.environ.get("COSMOS_X_CSRF_TOKEN", "SuperSecret")
+    self._x_csrf_token = COSMOS_TOKEN
     self.hostname = '127.0.0.1' if str(hostname).upper() == 'LOCALHOST' else hostname
     self.port = port
     self.mutex = RLock()

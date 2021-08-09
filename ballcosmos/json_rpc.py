@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 # -*- coding: latin-1 -*-
+"""
+json_rpc.py"""
 
 # Copyright 2017 Ball Aerospace & Technologies Corp.
 # All Rights Reserved.
@@ -11,138 +13,6 @@
 # attribution addendums as found in the LICENSE.txt
 
 import json
-
-#~ class Object
-  #~ def as_json(options = nil) #:nodoc:
-    #~ if respond_to?(:to_hash)
-      #~ to_hash
-    #~ else
-      #~ instance_variables
-    #~ end
-  #~ end
-#~ end
-
-#~ class Struct #:nodoc:
-  #~ def as_json(options = nil)
-    #~ pairs = []
-    #~ self.each_pair { |k, v| pairs << k.to_s; pairs << v.as_json(options) }
-    #~ Hash[*pairs]
-  #~ end
-#~ end
-
-#~ class TrueClass
-  #~ def as_json(options = nil) self end #:nodoc:
-#~ end
-
-#~ class FalseClass
-  #~ def as_json(options = nil) self end #:nodoc:
-#~ end
-
-#~ class NilClass
-  #~ def as_json(options = nil) self end #:nodoc:
-#~ end
-
-#~ class String
-  #~ NON_ASCII_PRINTABLE = /[^\x21-\x7e\s]/
-
-  #~ def as_json(options = nil)
-    #~ if self =~ NON_ASCII_PRINTABLE
-      #~ self.to_json_raw_object
-    #~ else
-      #~ self
-    #~ end
-  #~ end #:nodoc:
-#~ end
-
-#~ class Symbol
-  #~ def as_json(options = nil) to_s end #:nodoc:
-#~ end
-
-#~ class Numeric
-  #~ def as_json(options = nil) self end #:nodoc:
-#~ end
-
-#~ class Regexp
-  #~ def as_json(options = nil) to_s end #:nodoc:
-#~ end
-
-#~ module Enumerable
-  #~ def as_json(options = nil) #:nodoc:
-    #~ to_a.as_json(options)
-  #~ end
-#~ end
-
-#~ class Array
-  #~ def as_json(options = nil) #:nodoc:
-    #~ map { |v| v.as_json(options) }
-  #~ end
-#~ end
-
-#~ class Hash
-  #~ def as_json(options = nil) #:nodoc:
-    #~ pairs = []
-    #~ self.each { |k, v| pairs << k.to_s; pairs << v.as_json(options) }
-    #~ Hash[*pairs]
-  #~ end
-#~ end
-
-#~ class Time
-  #~ def as_json(options = nil) #:nodoc:
-    #~ to_json(options).remove_quotes
-  #~ end
-#~ end
-
-#~ class Date
-  #~ def as_json(options = nil) #:nodoc:
-    #~ to_json(options).remove_quotes
-  #~ end
-#~ end
-
-#~ class DateTime
-  #~ def as_json(options = nil) #:nodoc:
-    #~ to_json(options).remove_quotes
-  #~ end
-#~ end
-
-#~ class Exception
-  #~ def as_json(*a)
-    #~ hash = {}
-    #~ hash['class'] = self.class.name
-    #~ hash['message'] = self.message
-    #~ hash['backtrace'] = self.backtrace
-    #~ instance_vars = {}
-    #~ self.instance_variables.each do |instance_var_name|
-      #~ instance_vars[instance_var_name.to_s] = self.instance_variable_get(instance_var_name.to_s.intern)
-    #~ end
-    #~ hash['instance_variables'] = instance_vars
-    #~ hash.as_json(*a)
-  #~ end
-
-  #~ def to_json(*a)
-    #~ as_json(*a).to_json(*a)
-  #~ end
-
-  #~ def self.from_hash(hash)
-    #~ begin
-      #~ # Get Error class handling namespaced constants
-      #~ split_error_class_name = hash['class'].split("::")
-      #~ error_class = Object
-      #~ split_error_class_name.each do |name|
-        #~ error_class = error_class.const_get(name)
-      #~ end
-    #~ rescue
-      #~ error = Cosmos::JsonDRbUnknownError.new(hash['message'])
-      #~ error.set_backtrace(hash['backtrace'].concat(caller()))
-      #~ raise error
-    #~ end
-    #~ error = error_class.new(hash['message'])
-    #~ error.set_backtrace(hash['backtrace'].concat(caller())) if hash['backtrace']
-    #~ hash['instance_variables'].each do |name, value|
-      #~ error.instance_variable_set(name.intern, value)
-    #~ end
-    #~ error
-  #~ end
-#~ end
 
 class JsonDRbUnknownError(Exception):
   """An unknown JSON DRb error which can be re-raised by Exception"""
@@ -162,23 +32,6 @@ class JsonRpc:
 
   def __repr__(self):
     return str(self.hash)
-
-  #~ # @param other [JsonRpc] Another JsonRpc to compare hash values with
-  #~ def <=>(other)
-    #~ self.as_json <=> other.as_json
-  #~ end
-
-  #~ # @param a [Array] Array of options
-  #~ # @return [Hash] Hash representing the object
-  #~ def as_json(*a)
-    #~ @hash.as_json(*a)
-  #~ end
-
-  #~ # @param a [Array] Array of options
-  #~ # @return [String] The JSON encoded String
-  #~ def to_json(*a)
-    #~ as_json(*a).to_json(*a)
-  #~ end
 
 class JsonRpcRequest(JsonRpc):
   """Represents a JSON Remote Procedure Call Request"""

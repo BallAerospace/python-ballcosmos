@@ -1,5 +1,26 @@
+#!/usr/bin/env python3
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+# -*- coding: latin-1 -*-
+"""
+commands.py
+"""
+
+# Copyright 2017 Ball Aerospace & Technologies Corp.
+# All Rights Reserved.
+#
+# This program is free software; you can modify and/or redistribute it
+# under the terms of the GNU Lesser General Public License
+# as published by the Free Software Foundation; version 3 with
+# attribution addendums as found in the LICENSE.txt
+
+
 import logging
-from ballcosmos.script.script import *
+from ballcosmos import cmd_tlm_server
+from ballcosmos.extract import convert_to_value
+from ballcosmos.scripting import (
+  prompt_for_hazardous,
+  prompt_for_script_abort
+)
 
 # This is in System.commands in Ruby
 def build_cmd_output_string(target_name, cmd_name, cmd_params, raw = False):
@@ -44,12 +65,12 @@ def _cmd(cmd, cmd_no_hazardous, *args):
 
   while True:
     try:
-      target_name, cmd_name, cmd_params = ballcosmos.script.script.cmd_tlm_server.write(cmd, *args)
+      target_name, cmd_name, cmd_params = cmd_tlm_server.write(cmd, *args)
       _log_cmd(target_name, cmd_name, cmd_params, raw, no_range, no_hazardous)
-    except HazardousError as e:
+    except RuntimeError as e:
       ok_to_proceed = prompt_for_hazardous(e.target_name, e.cmd_name, e.hazardous_description)
       if ok_to_proceed:
-        target_name, cmd_name, cmd_params = ballcosmos.script.script.cmd_tlm_server.write(cmd_no_hazardous, *args)
+        target_name, cmd_name, cmd_params = cmd_tlm_server.write(cmd_no_hazardous, *args)
         _log_cmd(target_name, cmd_name, cmd_params, raw, no_range, no_hazardous)
       else:
         if not prompt_for_script_abort():
@@ -131,39 +152,39 @@ def cmd_raw_no_checks(*args):
 
 def send_raw(interface_name, data):
   """Sends raw data through an interface"""
-  return ballcosmos.script.script.cmd_tlm_server.write('send_raw', interface_name, data)
+  return cmd_tlm_server.write('send_raw', interface_name, data)
 
 def send_raw_file(interface_name, filename):
   """Sends raw data through an interface from a file"""
   data = None
   with open(filename, 'rb') as file:
     data = file.read()
-  return ballcosmos.script.script.cmd_tlm_server.write('send_raw', interface_name, data)
+  return cmd_tlm_server.write('send_raw', interface_name, data)
 
 def get_cmd_list(target_name):
   """Returns all the target commands as an array of arrays listing the command name and description."""
-  return ballcosmos.script.script.cmd_tlm_server.write('get_cmd_list', target_name)
+  return cmd_tlm_server.write('get_cmd_list', target_name)
 
 def get_cmd_param_list(target_name, cmd_name):
   """Returns all the parameters for given command as an array of arrays
   containing the parameter name, default value, states, description, units
   full name, units abbreviation, and whether it is required."""
-  return ballcosmos.script.script.cmd_tlm_server.write('get_cmd_param_list', target_name, cmd_name)
+  return cmd_tlm_server.write('get_cmd_param_list', target_name, cmd_name)
 
 def get_cmd_hazardous(target_name, cmd_name, cmd_params = None):
   """Returns whether a command is hazardous (true or false)"""
   if cmd_params == None:
     cmd_params = {}
-  return ballcosmos.script.script.cmd_tlm_server.write('get_cmd_hazardous', target_name, cmd_name, cmd_params)
+  return cmd_tlm_server.write('get_cmd_hazardous', target_name, cmd_name, cmd_params)
 
 def get_cmd_value(target_name, command_name, parameter_name, value_type = 'CONVERTED'):
   """Returns a value from the specified command"""
-  return ballcosmos.script.script.cmd_tlm_server.write('get_cmd_value', target_name, command_name, parameter_name, value_type)
+  return cmd_tlm_server.write('get_cmd_value', target_name, command_name, parameter_name, value_type)
 
 def get_cmd_time(target_name = None, command_name = None):
   """Returns the time the most recent command was sent"""
-  return ballcosmos.script.script.cmd_tlm_server.write('get_cmd_time', target_name, command_name)
+  return cmd_tlm_server.write('get_cmd_time', target_name, command_name)
 
 def get_cmd_buffer(target_name, command_name):
   """Returns the buffer from the most recent specified command"""
-  return ballcosmos.script.script.cmd_tlm_server.write('get_cmd_buffer', target_name, command_name)
+  return cmd_tlm_server.write('get_cmd_buffer', target_name, command_name)

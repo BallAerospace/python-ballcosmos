@@ -1,11 +1,32 @@
+#!/usr/bin/env python3
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+# -*- coding: latin-1 -*-
+"""
+api_shared.py
+"""
+
+# Copyright 2017 Ball Aerospace & Technologies Corp.
+# All Rights Reserved.
+#
+# This program is free software; you can modify and/or redistribute it
+# under the terms of the GNU Lesser General Public License
+# as published by the Free Software Foundation; version 3 with
+# attribution addendums as found in the LICENSE.txt
+
+
 import time
 import os
 import logging
 import platform
 import subprocess
-from os import listdir
-from os.path import isfile, isdir
-from ballcosmos.script.script import *
+import ballcosmos
+from ballcosmos.environment import DEFAULT_CTS_API_HOST
+from ballcosmos.connection import JsonDRbObject
+from ballcosmos.telemetry import tlm_variable
+from ballcosmos.extract import (
+  extract_fields_from_check_text,
+  extract_fields_from_tlm_text,
+)
 
 DEFAULT_TLM_POLLING_RATE = 0.25
 
@@ -34,7 +55,7 @@ def check(*args):
   or
   check('target_name packet_name item_name > 1')
   """
-  return _check(ballcosmos.script.telemetry.tlm, *args)
+  return _check(ballcosmos.telemetry.tlm, *args)
 
 def check_formatted(*args):
   """Check the formatted value of a telmetry item against a condition
@@ -45,7 +66,7 @@ def check_formatted(*args):
   or
   check('target_name packet_name item_name > 1')
   """
-  return _check(ballcosmos.script.telemetry.tlm_formatted, *args)
+  return _check(ballcosmos.telemetry.tlm_formatted, *args)
 
 def check_with_units(*args):
   """Check the formatted with units value of a telmetry item against a condition
@@ -56,7 +77,7 @@ def check_with_units(*args):
   or
   check('target_name packet_name item_name > 1')
   """
-  return _check(ballcosmos.script.telemetry.tlm_with_units, *args)
+  return _check(ballcosmos.telemetry.tlm_with_units, *args)
 
 def check_raw(*args):
   """Check the raw value of a telmetry item against a condition
@@ -67,7 +88,7 @@ def check_raw(*args):
   or
   check('target_name packet_name item_name > 1')
   """
-  return _check(ballcosmos.script.telemetry.tlm_raw, *args)
+  return _check(ballcosmos.telemetry.tlm_raw, *args)
 
 def _check_tolerance(method, *args):
   target_name, packet_name, item_name, expected_value, tolerance = check_tolerance_process_args(args, 'check_tolerance')
@@ -92,7 +113,7 @@ def _check_tolerance(method, *args):
       logger = logging.getLogger('ballcosmos')
       logger.info(message)
     else:
-      raise CheckError(message)
+      raise RuntimeError(message)
   else:
     range_bottom = expected_value - tolerance
     range_top = expected_value + tolerance
@@ -103,7 +124,7 @@ def _check_tolerance(method, *args):
       logger.info("{:s} was within {:s}".format(check_str, range_str))
     else:
       message = "{:s} failed to be within {:s}".format(check_str, range_str)
-      raise CheckError(message)
+      raise RuntimeError(message)
 
 def check_tolerance(*args):
   """Check the converted value of a telmetry item against an expected value with a tolerance
@@ -114,7 +135,7 @@ def check_tolerance(*args):
   or
   check_tolerance('target_name packet_name item_name', expected_value, tolerance)
   """
-  return _check_tolerance(ballcosmos.script.telemetry.tlm, *args)
+  return _check_tolerance(ballcosmos.telemetry.tlm, *args)
 
 def check_tolerance_raw(*args):
   """Check the raw value of a telmetry item against an expected value with a tolerance
@@ -125,7 +146,7 @@ def check_tolerance_raw(*args):
   or
   check_tolerance_raw('target_name packet_name item_name', expected_value, tolerance)
   """
-  return _check_tolerance(ballcosmos.script.telemetry.tlm_raw, *args)
+  return _check_tolerance(ballcosmos.telemetry.tlm_raw, *args)
 
 def check_expression(exp_to_eval, locals = None):
   """Check to see if an expression is true without waiting.  If the expression
@@ -136,7 +157,7 @@ def check_expression(exp_to_eval, locals = None):
     logger.info("CHECK: {:s} is TRUE".format(exp_to_eval))
   else:
     message = "CHECK: {:s} is FALSE".format(exp_to_eval)
-    raise CheckError(message)
+    raise RuntimeError(message)
 
 def wait(*args):
   """Wait on an expression to be true.  On a timeout, the script will continue.
@@ -245,7 +266,7 @@ def _wait_check(raw, *args):
     logger.info("{:s} success {:s}".format(check_str, with_value_str))
   else:
     message = "{:s} failed {:s}".format(check_str, with_value_str)
-    raise CheckError(message)
+    raise RuntimeError(message)
   return time_float
 
 def wait_check(*args):
@@ -297,7 +318,7 @@ def _wait_check_tolerance(raw, *args):
       logger = logging.getLogger('ballcosmos')
       logger.info(message)
     else:
-      raise CheckError(message)
+      raise RuntimeError(message)
   else:
     success, value = cosmos_script_wait_implementation_tolerance(target_name, packet_name, item_name, type, expected_value, tolerance, timeout, polling_rate)
     time_float = time.time() - start_time
@@ -310,7 +331,7 @@ def _wait_check_tolerance(raw, *args):
       logger.info("{:s} was within {:s}".format(check_str, range_str))
     else:
       message = "{:s} failed to be within {:s}".format(check_str, range_str)
-      raise CheckError(message)
+      raise RuntimeError(message)
   return time_float
 
 def wait_check_tolerance(*args):
@@ -335,7 +356,7 @@ def wait_check_expression(exp_to_eval,
     logger.info("CHECK: {:s} is TRUE after waiting {:g} seconds".format(exp_to_eval, time_float))
   else:
     message = "CHECK: {:s} is FALSE after waiting {:g} seconds".format(exp_to_eval, time_float)
-    raise CheckError(message)
+    raise RuntimeError(message)
   return time_float
 
 def wait_expression_stop_on_timeout(*args):
@@ -352,7 +373,7 @@ def _wait_packet(check,
     type = 'CHECK'
   else:
     type = 'WAIT'
-  initial_count = ballcosmos.script.telemetry.tlm(target_name, packet_name, 'RECEIVED_COUNT')
+  initial_count = ballcosmos.telemetry.tlm(target_name, packet_name, 'RECEIVED_COUNT')
   start_time = time.time()
   success, value = cosmos_script_wait_implementation(target_name,
                                                      packet_name,
@@ -368,7 +389,7 @@ def _wait_packet(check,
   else:
     message = "{:s}: {:s} {:s} expected to be received {:d} times but only received {:d} times after waiting {:g} seconds".format(type, target_name.upper(), packet_name.upper(), num_packets, value - initial_count, time_float)
     if check:
-      raise CheckError(message)
+      raise RuntimeError(message)
     else:
       logger.warning(message)
   return time_float
@@ -387,142 +408,6 @@ def wait_check_packet(target_name,
                       polling_rate = DEFAULT_TLM_POLLING_RATE):
   """Wait for a telemetry packet to be received a certain number of times or timeout and raise an error"""
   return _wait_packet(True, target_name, packet_name, num_packets, timeout, polling_rate)
-
-#~ def _get_procedure_path(procedure_name):
-  #~ # Handle not-giving an extension
-  #~ procedure_name_with_extension = None
-  #~ if File.extname(procedure_name).empty?
-    #~ procedure_name_with_extension = procedure_name + '.rb'
-
-  #~ path = None
-
-  #~ # Find filename in search path
-  #~ ($:).each do |directory|
-    #~ if File.exist?(directory + '/' + procedure_name) and not File.directory?(directory + '/' + procedure_name)
-      #~ path = directory + '/' + procedure_name
-      #~ break
-
-    #~ if procedure_name_with_extension and File.exist?(directory + '/' + procedure_name_with_extension)
-      #~ procedure_name = procedure_name_with_extension
-      #~ path = directory + '/' + procedure_name
-      #~ break
-
-  #~ # Handle absolute path
-  #~ path = procedure_name if !path and File.exist?(procedure_name)
-  #~ path = procedure_name_with_extension if !path and procedure_name_with_extension and File.exist?(procedure_name_with_extension)
-
-  #~ raise LoadError, "Procedure not found -- #{procedure_name}" unless path
-  #~ path
-
-#~ def check_file_cache_for_instrumented_script(path, md5)
-  #~ instrumented_script = nil
-  #~ cached = true
-  #~ use_file_cache = true
-
-  #~ Cosmos.set_working_dir do
-    #~ cache_path = File.join(System.paths['TMP'], 'script_runner')
-    #~ unless File.directory?(cache_path)
-      #~ # Try to create .cache directory
-      #~ begin
-        #~ Dir.mkdir(cache_path)
-      #~ rescue
-        #~ use_file_cache = false
-      #~ end
-    #~ end
-
-    #~ cache_filename = nil
-    #~ if use_file_cache
-      #~ # Check file based instrumented cache
-      #~ flat_path = path.tr("/", "_").gsub("\\", "_").tr(":", "_").tr(" ", "_")
-      #~ flat_path_with_md5 = flat_path + '_' + md5
-      #~ cache_filename = File.join(cache_path, flat_path_with_md5)
-    #~ end
-
-    #~ if use_file_cache and File.exist?(cache_filename)
-      #~ # Use file cached instrumentation
-      #~ File.open(cache_filename, 'r') {|file| instrumented_script = file.read}
-    #~ else
-      #~ cached = false
-
-      #~ # Build instrumentation
-      #~ file_text = ''
-      #~ begin
-        #~ file_text = File.read(path)
-      #~ rescue Exception => error
-        #~ raise "Error reading procedure file : #{path}"
-      #~ end
-
-      #~ instrumented_script = ScriptRunnerFrame.instrument_script(file_text, path, true)
-
-      #~ # Cache instrumentation into file
-      #~ if use_file_cache
-        #~ begin
-          #~ File.open(cache_filename, 'w') {|file| file.write(instrumented_script)}
-        #~ rescue
-          #~ # Oh well, failed to write cache file
-        #~ end
-      #~ end
-    #~ end
-  #~ end
-  #~ [instrumented_script, cached]
-#~ end
-
-#~ def start(procedure_name)
-  #~ cached = true
-  #~ path = _get_procedure_path(procedure_name)
-
-  #~ if defined? ScriptRunnerFrame and ScriptRunnerFrame.instance
-    #~ md5 = nil
-    #~ begin
-      #~ md5 = Cosmos.md5_files([path]).hexdigest
-    #~ rescue Exception => error
-      #~ raise "Error calculating md5 on procedure file : #{path}"
-    #~ end
-
-    #~ # Check RAM based instrumented cache
-    #~ instrumented_cache = ScriptRunnerFrame.instrumented_cache[path]
-    #~ instrumented_script = nil
-    #~ if instrumented_cache and md5 == instrumented_cache[1]
-      #~ # Use cached instrumentation
-      #~ instrumented_script = instrumented_cache[0]
-    #~ else
-      #~ instrumented_script, cached = check_file_cache_for_instrumented_script(path, md5)
-      #~ # Cache instrumentation into RAM
-      #~ ScriptRunnerFrame.instrumented_cache[path] = [instrumented_script, md5]
-    #~ end
-
-    #~ Object.class_eval(instrumented_script, path, 1)
-  #~ else # No ScriptRunnerFrame so just start it locally
-    #~ cached = false
-    #~ begin
-      #~ Kernel::load(path)
-    #~ rescue LoadError => error
-      #~ raise LoadError, "Error loading -- #{procedure_name}\n#{error.message}"
-    #~ end
-  #~ end
-  #~ # Return whether we had to load and instrument this file, i.e. it was not cached
-  #~ !cached
-#~ end
-
-#~ # Require an additional ruby file
-#~ def load_utility(procedure_name)
-  #~ not_cached = false
-  #~ if defined? ScriptRunnerFrame and ScriptRunnerFrame.instance
-    #~ saved = ScriptRunnerFrame.instance.use_instrumentation
-    #~ begin
-      #~ ScriptRunnerFrame.instance.use_instrumentation = false
-      #~ not_cached = start(procedure_name)
-    #~ ensure
-      #~ ScriptRunnerFrame.instance.use_instrumentation = saved
-    #~ end
-  #~ else # Just call start
-    #~ not_cached = start(procedure_name)
-  #~ end
-  #~ # Return whether we had to load and instrument this file, i.e. it was not cached
-  #~ # This is designed to match the behavior of Ruby's require and load keywords
-  #~ not_cached
-#~ end
-#~ alias require_utility load_utility
 
 ##########################################
 # Protected Methods
@@ -700,7 +585,7 @@ def _cosmos_script_wait_implementation(target_name, packet_name, item_name, valu
 
   while True:
     work_start = time.time()
-    value = ballcosmos.script.telemetry.tlm_variable(target_name, packet_name, item_name, value_type)
+    value = ballcosmos.telemetry.tlm_variable(target_name, packet_name, item_name, value_type)
     if eval(exp_to_eval):
       return [True, value]
     if time.time() >= end_time:
@@ -778,7 +663,7 @@ def check_eval(target_name, packet_name, item_name, comparison_to_eval, value):
     logger.info("{:s} success {:s}".format(check_str, value_str))
   else:
     message = "{:s} failed {:s}".format(check_str, value_str)
-    raise CheckError(message)
+    raise RuntimeError(message)
 
 #######################################
 # Methods accessing tlm_viewer
@@ -796,7 +681,7 @@ def clear_all(target = None, system_filename = 'system.txt', port = 7778):
 def write_tlm_viewer(tlm_viewer_cmd, display_name = None, x_pos = None, y_pos = None, system_filename = 'system.txt', port = 7778):
   max_retries = 60
   retry_count = 0
-  tlm_viewer = JsonDRbObject("localhost", port)
+  tlm_viewer = JsonDRbObject(DEFAULT_CTS_API_HOST, port)
   while True:
     try:
       if tlm_viewer_cmd == 'display':
@@ -806,7 +691,7 @@ def write_tlm_viewer(tlm_viewer_cmd, display_name = None, x_pos = None, y_pos = 
       else:
         tlm_viewer.write('clear_all', display_name)
       break
-    except DRbConnError:
+    except RuntimeError:
       # No Listening Tlm Viewer - So Start One
       canceled = cosmos_script_sleep(1)
       if not canceled:
@@ -815,7 +700,7 @@ def write_tlm_viewer(tlm_viewer_cmd, display_name = None, x_pos = None, y_pos = 
         if retry_count < max_retries:
           continue
         else:
-          raise RuntimeError("Unable to Successfully Start Listening Telemetry Viewer: {:s} could not be {:s}".format(display_name, action))
+          raise RuntimeError("Unable to Successfully Start Listening Telemetry Viewer: {:s} could not be {:s}".format(display_name, tlm_viewer_cmd))
     except Exception as e:
       tlm_viewer.disconnect()
       raise e
