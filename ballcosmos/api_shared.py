@@ -5,7 +5,7 @@
 api_shared.py
 """
 
-# Copyright 2017 Ball Aerospace & Technologies Corp.
+# Copyright 2021 Ball Aerospace & Technologies Corp.
 # All Rights Reserved.
 #
 # This program is free software; you can modify and/or redistribute it
