@@ -1,6 +1,6 @@
 here is a test file
 
-Python support for Ball Aerospace COSMOS
+Python support for Ball Aerospace COSMOS v4
 ========================================
 
 This project allows accessing the COSMOS API from the python programming language.

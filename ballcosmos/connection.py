@@ -34,14 +34,14 @@ logging.basicConfig(
     level=logging.getLevelName(LOG_LEVEL),
 )
 
-class DRbConnError(RuntimeError):
+class ConnectionError(RuntimeError):
   pass
 
-class JsonDRbObject:
+class Connection:
   """Class to perform JSON-RPC Calls to the COSMOS Server (or other JsonDrb server)
 
-  The JsonDRbObject can be used to call COSMOS server methods directly:
-    server = JsonDRbObject('127.0.0.1', 7777)
+  The Connection can be used to call COSMOS server methods directly:
+    server = Connection('127.0.0.1', 7777)
     server.cmd(...)
   """
 
@@ -85,7 +85,7 @@ class JsonDRbObject:
     method_params -- Array of parameters to pass to the method
     return -- The result of the method call. If the method raises an exception
       the same exception is also raised. If something goes wrong with the
-      protocol a DRb::DRbConnError exception is raised.
+      protocol a Connection.ConnectionError exception is raised.
     """
 
     with self.mutex:
@@ -96,7 +96,7 @@ class JsonDRbObject:
       first_try = True
       while True:
         if self.shutdown_needed.is_set():
-          raise DRbConnError("Shutdown")
+          raise ConnectionError("Shutdown")
 
         if self.connection is None or self.request_in_progress.is_set():
           self.connect()
@@ -142,7 +142,9 @@ class JsonDRbObject:
         logger.debug("connect failed %s", exception_)
         self.disconnect()
         self.connection = None
-        raise RuntimeError("failed to connection to cosmos") from exception_
+        raise RuntimeError(
+          f"Failed to connect to COSMOS on {self.hostname}:{self.port}"
+        ) from exception_
 
   def make_request(self, method_name, method_params, first_try):
     request = JsonRpcRequest(method_name, method_params, self.id)
@@ -170,7 +172,7 @@ class JsonDRbObject:
       if first_try:
         return None
       else:
-        raise DRbConnError("failed to make request: {}".format(request)) from e
+        raise ConnectionError(f"failed to make request: {request}") from e
     return response_data
 
   def handle_response(self, response_data):
@@ -181,11 +183,11 @@ class JsonDRbObject:
         #~ if response.error.data
           #~ raise Exception.from_hash(response.error.data)
         #~ else
-        raise RuntimeError("JsonDRb Error {}".format(response))
+        raise RuntimeError(f"Connection error {response}")
       else:
         return response.result()
     else:
       # Socket was closed by server
       self.disconnect()
       self.socket = None
-      raise DRbConnError("Socket closed by server")
+      raise ConnectionError("Socket closed by server")

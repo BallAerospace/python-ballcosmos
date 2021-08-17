@@ -15,7 +15,7 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 meta = {}
-with open(path.join(here, "ballcosmos/__init__.py"), encoding="utf-8") as f:
+with open(path.join(here, "ballcosmos/__version__.py"), encoding="utf-8") as f:
     exec(f.read(), meta)
 
 # Get the long description from the README file

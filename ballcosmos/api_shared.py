@@ -21,7 +21,7 @@ import platform
 import subprocess
 import ballcosmos
 from ballcosmos.environment import DEFAULT_CTS_API_HOST
-from ballcosmos.connection import JsonDRbObject
+from ballcosmos.connection import Connection
 from ballcosmos.telemetry import tlm_variable
 from ballcosmos.extract import (
   extract_fields_from_check_text,
@@ -681,7 +681,7 @@ def clear_all(target = None, system_filename = 'system.txt', port = 7778):
 def write_tlm_viewer(tlm_viewer_cmd, display_name = None, x_pos = None, y_pos = None, system_filename = 'system.txt', port = 7778):
   max_retries = 60
   retry_count = 0
-  tlm_viewer = JsonDRbObject(DEFAULT_CTS_API_HOST, port)
+  tlm_viewer = Connection(DEFAULT_CTS_API_HOST, port)
   while True:
     try:
       if tlm_viewer_cmd == 'display':

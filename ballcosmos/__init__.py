@@ -42,12 +42,12 @@ def initialize_module(hostname = None, port = None):
   if cmd_tlm_server:
     cmd_tlm_server.disconnect()
   if hostname and port:
-    cmd_tlm_server = JsonDRbObject(hostname, port)
+    cmd_tlm_server = Connection(hostname, port)
   else:
     if replay_mode_flag:
-      cmd_tlm_server = JsonDRbObject(DEFAULT_REPLAY_API_HOST, DEFAULT_REPLAY_API_PORT)
+      cmd_tlm_server = Connection(DEFAULT_REPLAY_API_HOST, DEFAULT_REPLAY_API_PORT)
     else:
-      cmd_tlm_server = JsonDRbObject(DEFAULT_CTS_API_HOST, DEFAULT_CTS_API_PORT)
+      cmd_tlm_server = Connection(DEFAULT_CTS_API_HOST, DEFAULT_CTS_API_PORT)
 
 
 def shutdown_cmd_tlm():

@@ -17,7 +17,7 @@ ENV REQUESTS_CA_BUNDLE=/devel/cacert.pem
 
 ENV PYTHONUNBUFFERED=1
 
-WORKDIR /devel/
+WORKDIR /app/
 
 RUN apk add --no-cache --virtual .build-dependencies \
         gcc musl-dev python3-dev \
@@ -28,7 +28,9 @@ RUN apk add --no-cache --virtual .build-dependencies \
     && git config --global http.sslVerify false \
     && /sbin/apk del --no-cache .build-dependencies
 
-COPY ./ ./ballcosmos/
+COPY ./ ./
 
-# RUN python /devel/ballcosmos/setup.py develop
-# RUN python /devel/ballcosmos/setup.py install
+RUN [ "python", "/app/setup.py", "develop" ]
+# RUN ["python", "/app/setup.py", "install"]
+
+CMD [ "tail", "-f", "/dev/null" ]
