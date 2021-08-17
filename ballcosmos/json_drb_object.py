@@ -134,10 +134,12 @@ class JsonDRbObject:
             break
 
     if exception_ is not None:
-        logger.debug("connect failed %s", exception_)
+        logger.debug("connect() failed %s", exception_)
         self.disconnect()
         self.connection = None
-        raise RuntimeError("failed to connection to cosmos") from exception_
+        raise RuntimeError(
+            f"Failed to connect to COSMOS on {self.hostname}:{self.port}"
+        ) from exception_
 
   def make_request(self, method_name, method_params, first_try):
     request = JsonRpcRequest(method_name, method_params, self.id)
