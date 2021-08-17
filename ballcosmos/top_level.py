@@ -17,12 +17,12 @@ def define_user_path(start_dir = os.getcwd()):
   """
   current_dir = os.path.abspath(start_dir)
   while True:
-    if os.path.isfile("/".join([current_dir, 'userpath.txt'])):
+    if os.path.isfile(os.path.join(current_dir, 'userpath.txt')):
       USERPATH = current_dir
       break
     else:
       old_current_dir = current_dir
-      current_dir = os.path.abspath("/".join([current_dir, '..']))
+      current_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
       if old_current_dir == current_dir:
         # Hit the root dir - give up
         break
