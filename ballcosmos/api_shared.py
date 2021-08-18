@@ -707,13 +707,4 @@ def write_tlm_viewer(tlm_viewer_cmd, display_name = None, x_pos = None, y_pos = 
   tlm_viewer.disconnect()
 
 def start_tlm_viewer(system_file = 'system.txt'):
-  mac_app = "/".join([ballcosmos.top_level.USERPATH, 'tools', 'mac', 'TlmViewer.app'])
-
-  if platform.system == 'Darwin' and os.path.isfile(mac_app):
-    subprocess.Popen("open '{:s}' --args --system {:s}".format(mac_app, system_file))
-  else:
-    cmd_name = 'ruby'
-    if platform.system() == 'Windows':
-      cmd_name += 'w' # Windows uses rubyw to avoid creating a DOS shell
-    subprocess.Popen("{:s} '{:s}' --system {:s}".format(cmd_name, "/".join([ballcosmos.top_level.USERPATH, 'tools', 'TlmViewer']), system_file))
-  cosmos_script_sleep(1)
+  raise NotImplementedError("removed in 2.0")

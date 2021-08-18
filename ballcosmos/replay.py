@@ -14,37 +14,37 @@ replay.py
 # attribution addendums as found in the LICENSE.txt
 
 
-from ballcosmos import cmd_tlm_server
+import ballcosmos
 
 def replay_select_file(filename, packet_log_reader = "DEFAULT"):
-  return cmd_tlm_server.write('replay_select_file', filename, packet_log_reader)
+  return ballcosmos.cmd_tlm_server.write('replay_select_file', filename, packet_log_reader)
 
 def replay_status():
-  return cmd_tlm_server.write('replay_status')
+  return ballcosmos.cmd_tlm_server.write('replay_status')
 
 def replay_set_playback_delay(delay):
-  return cmd_tlm_server.write('replay_set_playback_delay', delay)
+  return ballcosmos.cmd_tlm_server.write('replay_set_playback_delay', delay)
 
 def replay_play():
-  return cmd_tlm_server.write('replay_play')
+  return ballcosmos.cmd_tlm_server.write('replay_play')
 
 def replay_reverse_play():
-  return cmd_tlm_server.write('replay_reverse_play')
+  return ballcosmos.cmd_tlm_server.write('replay_reverse_play')
 
 def replay_stop():
-  return cmd_tlm_server.write('replay_stop')
+  return ballcosmos.cmd_tlm_server.write('replay_stop')
 
 def replay_step_forward():
-  return cmd_tlm_server.write('replay_step_forward')
+  return ballcosmos.cmd_tlm_server.write('replay_step_forward')
 
 def replay_step_back():
-  return cmd_tlm_server.write('replay_step_back')
+  return ballcosmos.cmd_tlm_server.write('replay_step_back')
 
 def replay_move_start():
-  return cmd_tlm_server.write('replay_move_start')
+  return ballcosmos.cmd_tlm_server.write('replay_move_start')
 
 def replay_move_end():
-  return cmd_tlm_server.write('replay_move_end')
+  return ballcosmos.cmd_tlm_server.write('replay_move_end')
 
 def replay_move_index(index):
-  return cmd_tlm_server.write('replay_move_index', index)
+  return ballcosmos.cmd_tlm_server.write('replay_move_index', index)

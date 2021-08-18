@@ -9,10 +9,6 @@ os.environ["COSMOS_LOG_LEVEL"] = "DEBUG"
 
 from ballcosmos import *
 
-
-set_replay_mode(False)
-
-
 def run_thread():
     print("Running thread")
     print(cmd("INST ABORT"))
@@ -207,9 +203,8 @@ print(wait_packet("INST", "HEALTH_STATUS", 3, 5))
 print(wait_check_packet("INST", "HEALTH_STATUS", 3, 5))
 
 # replay.py
-filename = get_output_logs_filenames()[-1]
-print(filename)
 set_replay_mode(True)
+filename = get_output_logs_filenames()[-1]
 print(replay_select_file(filename))
 print(replay_status())
 print(replay_set_playback_delay(1))
@@ -228,6 +223,6 @@ thread = threading.Thread(target=run_thread)
 thread.start()
 thread.join()
 
-script_disconnect()
+disconnect()
 
-shutdown_cmd_tlm()
+shutdown()

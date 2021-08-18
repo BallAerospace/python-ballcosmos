@@ -35,34 +35,34 @@ replay_mode_flag = False
 
 ###################################
 
-def initialize_module(hostname = None, port = None):
+def initialize_module():
   global cmd_tlm_server
   global replay_mode_flag
 
   if cmd_tlm_server:
     cmd_tlm_server.disconnect()
-  if hostname and port:
-    cmd_tlm_server = Connection(hostname, port)
+
+  if replay_mode_flag:
+    cmd_tlm_server = Connection(DEFAULT_REPLAY_API_HOST, DEFAULT_REPLAY_API_PORT)
   else:
-    if replay_mode_flag:
-      cmd_tlm_server = Connection(DEFAULT_REPLAY_API_HOST, DEFAULT_REPLAY_API_PORT)
-    else:
-      cmd_tlm_server = Connection(DEFAULT_CTS_API_HOST, DEFAULT_CTS_API_PORT)
+    cmd_tlm_server = Connection(DEFAULT_CTS_API_HOST, DEFAULT_CTS_API_PORT)
 
 
-def shutdown_cmd_tlm():
+def shutdown():
+  global cmd_tlm_server
   cmd_tlm_server.shutdown()
 
 
-def script_disconnect():
+def disconnect():
+  global cmd_tlm_server
   cmd_tlm_server.disconnect()
 
 
-def set_replay_mode(replay_mode, hostname = None, port = None):
+def set_replay_mode(replay_mode: bool):
   global replay_mode_flag
-  if replay_mode != replay_mode_flag:
+  if replay_mode is not replay_mode_flag:
     replay_mode_flag = replay_mode
-    initialize_module(hostname, port)
+    initialize_module()
 
 
 def get_replay_mode():

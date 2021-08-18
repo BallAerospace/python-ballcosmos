@@ -53,21 +53,22 @@ class Connection:
     port -- The port number of the JSON service
     """
     self.id = 0
-    self._x_csrf_token = COSMOS_TOKEN
     self.hostname = '127.0.0.1' if str(hostname).upper() == 'LOCALHOST' else hostname
     self.port = port
-    self.mutex = RLock()
-    self.connection = None
     self.connect_timeout = connect_timeout
     if self.connect_timeout is not None:
       self.connect_timeout = float(self.connect_timeout)
-    self.request_in_progress = Event()
-    self.shutdown_needed = Event()
+    self._mutex = RLock()
+    self._connection = None
+    self._request_in_progress = RLock()
+    self._reset = Event()
+    self._shutdown = Event()
 
   def disconnect(self):
     """Disconnects from the JSON server"""
-    if (self.connection):
-      self.connection.close()
+    if self._connection:
+      self._reset.set()
+      self._connection.close()
     # Cannot set @connection to None here because this method can be called by
     # other threads and @connection being None would cause unexpected errors in method_missing
     # Also don't want to take the mutex so that we can interrupt method_missing if necessary
@@ -75,7 +76,7 @@ class Connection:
 
   def shutdown(self):
     """Permanently disconnects from the JSON server"""
-    self.shutdown_needed = True
+    self._shutdown.set()
     self.disconnect()
 
   def write(self, method_name, *method_params):
@@ -87,24 +88,21 @@ class Connection:
       the same exception is also raised. If something goes wrong with the
       protocol a Connection.ConnectionError exception is raised.
     """
-
-    with self.mutex:
+    if self._shutdown.is_set():
+        raise ConnectionError("Shutdown")
+    with self._mutex:
       # This flag and loop are used to automatically reconnect and retry if something goes
       # wrong on the first attempt writing to the socket.   Sockets can become disconnected
       # between function calls, but as long as the remote server is back up and running the
       # call should succeed even when it discovers a broken socket on the first attempt.
       first_try = True
       while True:
-        if self.shutdown_needed.is_set():
-          raise ConnectionError("Shutdown")
-
-        if self.connection is None or self.request_in_progress.is_set():
+        if self._connection is None or self._reset.is_set():
           self.connect()
-
         response = self.make_request(method_name, method_params, first_try)
         if response is None:
           self.disconnect()
-          self.connection = None
+          self._reset.set()
           if first_try:
             first_try = False
             continue
@@ -113,67 +111,67 @@ class Connection:
 
   # private
   def connect(self):
-    if self.request_in_progress.is_set():
-      self.disconnect()
-      self.connection = None
-      self.request_in_progress.clear()
-
+    if self._connection:
+      self._connection.close()
+      self._connection = None
     exception_ = None
     for i in range(MAX_RETRY_COUNT):
-        logger.debug("connect try %d out of %d", i, MAX_RETRY_COUNT)
-        try:
-            self.connection = HTTPConnection(
-                self.hostname,
-                self.port,
-                timeout=self.connect_timeout,
-            )
-            self.connection.connect()
-            logger.debug("connected on try %d out of %d", i, MAX_RETRY_COUNT)
-            exception_ = None
-            break
-        except ConnectionRefusedError as e:
-            exception_ = e
-            time.sleep(1)
-        except OSError as e:
-            exception_ = e
-            break
+      logger.debug("connect try %d out of %d to %s:%d", i, MAX_RETRY_COUNT, self.hostname, self.port)
+      try:
+        print(f">>>> DEBUG NEW CONNECTION")
+        self._connection = HTTPConnection(
+          self.hostname,
+          self.port,
+          timeout=self.connect_timeout,
+        )
+        self._connection.connect()
+        logger.debug("connected on try %d out of %d", i, MAX_RETRY_COUNT)
+        exception_ = None
+        break
+      except ConnectionRefusedError as e:
+        exception_ = e
+        time.sleep(1)
+      except OSError as e:
+        exception_ = e
+        break
 
     if exception_ is not None:
-        logger.debug("connect() failed %s", exception_)
-        self.disconnect()
-        self.connection = None
-        raise RuntimeError(
-          f"Failed to connect to COSMOS on {self.hostname}:{self.port}"
-        ) from exception_
+      logger.debug("connect() failed %s", exception_)
+      self.disconnect()
+      self._connection = None
+      raise RuntimeError(
+        f"Failed to connect to COSMOS on {self.hostname}:{self.port}"
+      ) from exception_
 
   def make_request(self, method_name, method_params, first_try):
     request = JsonRpcRequest(method_name, method_params, self.id)
-    self.id += 1
     hash_ = convert_bytearray_to_string_raw(request.hash)
     request_kwargs = {
-        "method": "POST",
-        "url": "/",
-        "body": json.dumps(hash_),
-        "headers": {
-            "Content-Type": "application/json-rpc",
-            "X_CSRF_TOKEN": self._x_csrf_token
-        },
+      "method": "POST",
+      "connection": f"{self._connection.host}:{self._connection.port}",
+      "url": "/",
+      "body": json.dumps(hash_),
+      "headers": {
+        "Content-Type": "application/json-rpc",
+        "X_CSRF_TOKEN": COSMOS_TOKEN,
+      },
     }
     try:
       logger.debug("request: %s", request_kwargs)
-      self.request_in_progress.set()
-      self.connection.request(**request_kwargs)
-      response_data = self.connection.getresponse().read()
-      self.request_in_progress.clear()
-      logger.debug("response: %s", response_data)
+      request_kwargs.pop("connection")
+      with self._request_in_progress:
+        self._connection.request(**request_kwargs)
+        response = self._connection.getresponse()
+        response_data = response.read()
+        response_headers = [{x[0], x[1]} for x in response.getheaders()]
+        self.id += 1
+      logger.debug("response headers: %s, response: %s", response_headers, response_data)
+      return response_data
     except Exception as e:
       self.disconnect()
-      self.connection = None
-      if first_try:
-        return None
-      else:
-        raise ConnectionError(f"failed to make request: {request}") from e
-    return response_data
+      self._reset.set()
+      if first_try is False:
+        raise ConnectionError(f"failed to make request: {request_kwargs}") from e
 
   def handle_response(self, response_data):
     # The code below will always either raise or return breaking out of the loop
@@ -189,5 +187,4 @@ class Connection:
     else:
       # Socket was closed by server
       self.disconnect()
-      self.socket = None
       raise ConnectionError("Socket closed by server")
