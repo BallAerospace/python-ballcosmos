@@ -17,25 +17,25 @@ extract.py
 import re
 from ballcosmos import *
 
-SCANNING_REGULAR_EXPRESSION = re.compile("(?:\"(?:[^\\\"]|\\.)*\") | (?:'(?:[^\\']|\\.)*') | (?:\[.*\]) | \S+", re.VERBOSE)
+SCANNING_REGULAR_EXPRESSION = re.compile(r"(?:\"(?:[^\\\"]|\\.)*\") | (?:'(?:[^\\']|\\.)*') | (?:\[.*\]) | \S+", re.VERBOSE)
 
-SPLIT_WITH_REGEX = re.compile("\s+with\s+", re.IGNORECASE)
+SPLIT_WITH_REGEX = re.compile(r"\s+with\s+", re.IGNORECASE)
 
 # Regular expression to identify a String as a floating point number
-FLOAT_CHECK_REGEX = re.compile("\A\s*[-+]?\d*\.\d+\s*\Z")
+FLOAT_CHECK_REGEX = re.compile(r"\A\s*[-+]?\d*\.\d+\s*\Z")
 
 # Regular expression to identify a String as a floating point number in
 # scientific notation
-SCIENTIFIC_CHECK_REGEX = re.compile("\A\s*[-+]?(\d+((\.\d+)?)|(\.\d+))[eE][-+]?\d+\s*\Z")
+SCIENTIFIC_CHECK_REGEX = re.compile(r"\A\s*[-+]?(\d+((\.\d+)?)|(\.\d+))[eE][-+]?\d+\s*\Z")
 
 # Regular expression to identify a String as an integer
-INT_CHECK_REGEX = re.compile("\A\s*[-+]?\d+\s*\Z")
+INT_CHECK_REGEX = re.compile(r"\A\s*[-+]?\d+\s*\Z")
 
 # Regular expression to identify a String as an integer in hexadecimal format
-HEX_CHECK_REGEX = re.compile("\A\s*0[xX][\dabcdefABCDEF]+\s*\Z")
+HEX_CHECK_REGEX = re.compile(r"\A\s*0[xX][\dabcdefABCDEF]+\s*\Z")
 
 # Regular expression to identify a String as an Array of numbers
-ARRAY_CHECK_REGEX = re.compile("\A\s*\[.*\]\s*\Z")
+ARRAY_CHECK_REGEX = re.compile(r"\A\s*\[.*\]\s*\Z")
 
 def remove_quotes(string):
   """Returns the string with leading and trailing quotes removed"""

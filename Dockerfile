@@ -33,4 +33,5 @@ COPY ./ ./
 RUN [ "python", "/app/setup.py", "develop" ]
 # RUN ["python", "/app/setup.py", "install"]
 
-CMD [ "tail", "-f", "/dev/null" ]
+# CMD [ "tail", "-f", "/dev/null" ]
+CMD [ "coverage", "run", "-m", "pytest", "./tests/" ]

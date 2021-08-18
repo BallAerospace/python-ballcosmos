@@ -22,7 +22,7 @@ class TestConnection(unittest.TestCase):
         """
         cmd_tlm_server = Connection(self.HOST, self.PORT)
         connect.assert_not_called()
-        self.assertIsNone(cmd_tlm_server.connection)
+        self.assertIsNone(cmd_tlm_server._connection)
 
     @patch("ballcosmos.connection.HTTPConnection.connect")
     def test_object_localhost(self, connect):
@@ -31,7 +31,7 @@ class TestConnection(unittest.TestCase):
         """
         cmd_tlm_server = Connection("LOCALHOST", self.PORT)
         connect.assert_not_called()
-        self.assertIsNone(cmd_tlm_server.connection)
+        self.assertIsNone(cmd_tlm_server._connection)
         self.assertEqual(cmd_tlm_server.hostname, self.HOST)
         self.assertEqual(cmd_tlm_server.port, self.PORT)
 
@@ -43,7 +43,7 @@ class TestConnection(unittest.TestCase):
         hostname = "tacocat"
         cmd_tlm_server = Connection(hostname, self.PORT)
         connect.assert_not_called()
-        self.assertIsNone(cmd_tlm_server.connection)
+        self.assertIsNone(cmd_tlm_server._connection)
         self.assertEqual(cmd_tlm_server.hostname, hostname)
         self.assertEqual(cmd_tlm_server.port, self.PORT)
 
@@ -54,7 +54,7 @@ class TestConnection(unittest.TestCase):
         """
         cmd_tlm_server = Connection(self.HOST, self.PORT)
         connect.assert_not_called()
-        self.assertIsNone(cmd_tlm_server.connection)
+        self.assertIsNone(cmd_tlm_server._connection)
 
     @patch("ballcosmos.connection.HTTPConnection")
     def testconnection(self, connection):
@@ -70,7 +70,7 @@ class TestConnection(unittest.TestCase):
         connection.return_value = mock
         cmd_tlm_server = Connection(self.HOST, self.PORT)
         cmd_tlm_server.write(self.testconnection.__name__)
-        self.assertIsNotNone(cmd_tlm_server.connection)
+        self.assertIsNotNone(cmd_tlm_server._connection)
         mock.connect.assert_called_once()
         mock.request.assert_called_once()
 
@@ -87,7 +87,7 @@ class TestConnection(unittest.TestCase):
         cmd_tlm_server = Connection(self.HOST, self.PORT)
         with self.assertRaises(RuntimeError):
             cmd_tlm_server.write(self.testconnection_refused_error.__name__)
-        self.assertIsNone(cmd_tlm_server.connection)
+        self.assertIsNone(cmd_tlm_server._connection)
         mock.connect.assert_called()
         mock.request.assert_not_called()
 
@@ -102,7 +102,7 @@ class TestConnection(unittest.TestCase):
         cmd_tlm_server = Connection(self.HOST, self.PORT)
         with self.assertRaises(RuntimeError):
             cmd_tlm_server.write(self.testconnection_error.__name__)
-        self.assertIsNone(cmd_tlm_server.connection)
+        self.assertIsNone(cmd_tlm_server._connection)
         mock.connect.assert_called_once()
         mock.request.assert_not_called()
 
@@ -121,7 +121,7 @@ class TestConnection(unittest.TestCase):
         cmd_tlm_server = Connection(self.HOST, self.PORT)
         with self.assertRaises(RuntimeError):
             cmd_tlm_server.write(self.test_response_error.__name__)
-        self.assertIsNotNone(cmd_tlm_server.connection)
+        self.assertIsNotNone(cmd_tlm_server._connection)
         mock.connect.assert_called()
         mock.request.assert_called()
 
@@ -138,7 +138,7 @@ class TestConnection(unittest.TestCase):
         cmd_tlm_server = Connection(self.HOST, self.PORT)
         with self.assertRaises(RuntimeError):
             cmd_tlm_server.write(self.test_response_none.__name__)
-        self.assertIsNone(cmd_tlm_server.connection)
+        self.assertTrue(cmd_tlm_server._reset.is_set())
         mock.connect.assert_called()
         mock.request.assert_called()
 
@@ -155,7 +155,7 @@ class TestConnection(unittest.TestCase):
         cmd_tlm_server = Connection(self.HOST, self.PORT)
         with self.assertRaises(RuntimeError):
             cmd_tlm_server.write(self.test_response_error.__name__)
-        self.assertIsNotNone(cmd_tlm_server.connection)
+        self.assertIsNotNone(cmd_tlm_server._connection)
         mock.connect.assert_called()
         mock.request.assert_called()
 
@@ -184,7 +184,7 @@ class TestConnection(unittest.TestCase):
         cmd_tlm_server = Connection(self.HOST, self.PORT)
         with self.assertRaises(RuntimeError):
             cmd_tlm_server.write(self.test_response_result_error.__name__)
-        self.assertIsNotNone(cmd_tlm_server.connection)
+        self.assertIsNotNone(cmd_tlm_server._connection)
         mock.connect.assert_called_once()
         mock.request.assert_called_once()
 
@@ -203,7 +203,7 @@ class TestConnection(unittest.TestCase):
         cmd_tlm_server = Connection(self.HOST, self.PORT)
         with self.assertRaises(RuntimeError):
             cmd_tlm_server.write(self.test_response_result_invalid.__name__)
-        self.assertIsNotNone(cmd_tlm_server.connection)
+        self.assertIsNotNone(cmd_tlm_server._connection)
         mock.connect.assert_called_once()
         mock.request.assert_called_once()
 
