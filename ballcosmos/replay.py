@@ -16,35 +16,46 @@ replay.py
 
 import ballcosmos
 
-def replay_select_file(filename, packet_log_reader = "DEFAULT"):
-  return ballcosmos.cmd_tlm_server.write('replay_select_file', filename, packet_log_reader)
+
+def replay_select_file(filename, packet_log_reader="DEFAULT"):
+    return ballcosmos.CTS.write("replay_select_file", filename, packet_log_reader)
+
 
 def replay_status():
-  return ballcosmos.cmd_tlm_server.write('replay_status')
+    return ballcosmos.CTS.write("replay_status")
+
 
 def replay_set_playback_delay(delay):
-  return ballcosmos.cmd_tlm_server.write('replay_set_playback_delay', delay)
+    return ballcosmos.CTS.write("replay_set_playback_delay", delay)
+
 
 def replay_play():
-  return ballcosmos.cmd_tlm_server.write('replay_play')
+    return ballcosmos.CTS.write("replay_play")
+
 
 def replay_reverse_play():
-  return ballcosmos.cmd_tlm_server.write('replay_reverse_play')
+    return ballcosmos.CTS.write("replay_reverse_play")
+
 
 def replay_stop():
-  return ballcosmos.cmd_tlm_server.write('replay_stop')
+    return ballcosmos.CTS.write("replay_stop")
+
 
 def replay_step_forward():
-  return ballcosmos.cmd_tlm_server.write('replay_step_forward')
+    return ballcosmos.CTS.write("replay_step_forward")
+
 
 def replay_step_back():
-  return ballcosmos.cmd_tlm_server.write('replay_step_back')
+    return ballcosmos.CTS.write("replay_step_back")
+
 
 def replay_move_start():
-  return ballcosmos.cmd_tlm_server.write('replay_move_start')
+    return ballcosmos.CTS.write("replay_move_start")
+
 
 def replay_move_end():
-  return ballcosmos.cmd_tlm_server.write('replay_move_end')
+    return ballcosmos.CTS.write("replay_move_end")
+
 
 def replay_move_index(index):
-  return ballcosmos.cmd_tlm_server.write('replay_move_index', index)
+    return ballcosmos.CTS.write("replay_move_index", index)

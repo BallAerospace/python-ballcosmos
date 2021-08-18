@@ -8,7 +8,7 @@ test_drb_object.py
 import unittest
 from unittest.mock import patch, MagicMock
 
-from ballcosmos.connection import Connection 
+from ballcosmos.connection import Connection
 
 
 class TestConnection(unittest.TestCase):

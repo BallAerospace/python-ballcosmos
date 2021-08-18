@@ -16,58 +16,70 @@ __init__.py
 from ballcosmos.connection import *
 from ballcosmos.environment import *
 
+
 class CheckError(RuntimeError):
-  pass
+    pass
+
 
 class StopScript(RuntimeError):
-  pass
+    pass
+
 
 class SkipTestCase(RuntimeError):
-  pass
+    pass
+
 
 class HazardousError(RuntimeError):
-  pass
+    pass
+
 
 ###################################
 
-cmd_tlm_server = None
-replay_mode_flag = False
+CTS = None  # Stands for command telemetry server
+RMF = False
 
 ###################################
 
-def initialize_module():
-  global cmd_tlm_server
-  global replay_mode_flag
 
-  if cmd_tlm_server:
-    cmd_tlm_server.disconnect()
+def initialize_module(hostname: str, port: int):
+    global CTS
+    global RMF
 
-  if replay_mode_flag:
-    cmd_tlm_server = Connection(DEFAULT_REPLAY_API_HOST, DEFAULT_REPLAY_API_PORT)
-  else:
-    cmd_tlm_server = Connection(DEFAULT_CTS_API_HOST, DEFAULT_CTS_API_PORT)
+    if CTS:
+        CTS.disconnect()
+
+    if hostname and port:
+        CTS = Connection(hostname, port)
+    elif RMF:
+        CTS = Connection(DEFAULT_REPLAY_API_HOST, DEFAULT_REPLAY_API_PORT)
+    else:
+        CTS = Connection(DEFAULT_CTS_API_HOST, DEFAULT_CTS_API_PORT)
 
 
 def shutdown():
-  global cmd_tlm_server
-  cmd_tlm_server.shutdown()
+    """shutdown the connection"""
+    global CTS
+    CTS.shutdown()
 
 
 def disconnect():
-  global cmd_tlm_server
-  cmd_tlm_server.disconnect()
+    """disconnect from the server"""
+    global CTS
+    CTS.disconnect()
 
 
 def set_replay_mode(replay_mode: bool):
-  global replay_mode_flag
-  if replay_mode is not replay_mode_flag:
-    replay_mode_flag = replay_mode
-    initialize_module()
+    """Set replay mode to True or False"""
+    global RMF
+    if replay_mode is not RMF:
+        RMF = replay_mode
+        initialize_module()
 
 
 def get_replay_mode():
-  global replay_mode_flag
-  return replay_mode_flag
+    """Get RMF, True or False"""
+    global RMF
+    return RMF
 
 
 initialize_module()

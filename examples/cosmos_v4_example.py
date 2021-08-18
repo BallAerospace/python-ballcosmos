@@ -5,9 +5,10 @@
 import threading
 import os
 
-os.environ["COSMOS_LOG_LEVEL"] = "DEBUG"
+# os.environ["COSMOS_LOG_LEVEL"] = "DEBUG"
 
 from ballcosmos import *
+
 
 def run_thread():
     print("Running thread")
