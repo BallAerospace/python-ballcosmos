@@ -41,7 +41,7 @@ RMF = False
 ###################################
 
 
-def initialize_module(hostname: str, port: int):
+def initialize_module(hostname: str = None, port: int = None):
     global CTS
     global RMF
 
