@@ -139,7 +139,7 @@ class Connection:
             break
 
     if exception_ is not None:
-        logger.debug("connect failed %s", exception_)
+        logger.debug("connect() failed %s", exception_)
         self.disconnect()
         self.connection = None
         raise RuntimeError(
