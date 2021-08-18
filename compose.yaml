@@ -1,0 +1,10 @@
+# Copyright 2021 Ball Aerospace & Technologies Corp.
+# All Rights Reserved.
+
+version: "3.5"
+
+services:
+  ballcosmos:
+    build:
+      context: "."
+    image: "ballaerospace/ballcosmos:${COSMOS_TAG}"
