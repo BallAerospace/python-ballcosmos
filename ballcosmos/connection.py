@@ -22,11 +22,8 @@ from threading import RLock, Event
 
 from ballcosmos.__version__ import __title__
 from ballcosmos.json_rpc import *
-from ballcosmos.environment import (
-    COSMOS_TOKEN,
-    LOG_LEVEL,
-    MAX_RETRY_COUNT,
-)
+from ballcosmos.exceptions import *
+from ballcosmos.environment import *
 
 logger = logging.getLogger(__title__)
 logging.basicConfig(
@@ -102,14 +99,15 @@ class Connection:
             while True:
                 if self._connection is None or self._reset.is_set():
                     self.connect()
-                response = self.make_request(method_name, method_params, first_try)
+                request = JsonRpcRequest(method_name, method_params, self.id)
+                response = self.make_request(request, first_try)
                 if response is None:
                     self.disconnect()
                     self._reset.set()
                     if first_try:
                         first_try = False
                         continue
-                return self.handle_response(response)
+                return self.handle_response(request, response)
 
     # private
     def connect(self):
@@ -153,11 +151,10 @@ class Connection:
                 f"Failed to connect to COSMOS on {self.hostname}:{self.port}"
             ) from exception_
 
-    def make_request(self, method_name, method_params, first_try):
+    def make_request(self, request, first_try):
         """
         Make the api request to Cosmos v4
         """
-        request = JsonRpcRequest(method_name, method_params, self.id)
         hash_ = convert_bytearray_to_string_raw(request.hash)
         self.id += 1
         request_kwargs = {
@@ -187,13 +184,13 @@ class Connection:
                     f"failed to make request: {request_kwargs}"
                 ) from error
 
-    def handle_response(self, response_data):
+    def handle_response(self, request, response_data):
         # The code below will always either raise or return breaking out of the loop
         if response_data is not None:
             response = JsonRpcResponse.from_json(response_data)
             if isinstance(response, JsonRpcErrorResponse):
-                raise RuntimeError("JsonRpcError", response)
+                raise CosmosResponseError(request, response)
             return response.result()
         # Socket was closed by server
         self.disconnect()
-        raise ConnectionError("Socket closed by server")
+        raise CosmosConnectionError(f"request: {request} failed, was the socket closed by server")

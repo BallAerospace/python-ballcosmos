@@ -14,7 +14,7 @@ default is equal to "SuperSecret"
 * cmd_tlm_server global is renamed to CTS and replay_mode_flag is now RMF
 * renamed jsonDrbObejct to Connection
 * changed Connection retry, disconnect, and shutdown logic
+* created new exceptions, they still extend RuntimeError
 * more environment variables see docs or ballcosmos.environment
-* changed the _cmd function, This could change functionality in the cmd() functions
-as I am still not sure what it was trying to do I think I could ahve broken this.
+* updated the _cmd function to work
 * python Black format

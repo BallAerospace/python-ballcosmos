@@ -172,8 +172,8 @@ except NotImplementedError:
     pass
 
 # scripting.py
-print(ask_string("Question?: "))
-print(ask("Well?: "))
+print(ask_string("Question?:"))
+print(ask("Well?:"))
 print(prompt("Hit Ok"))
 print(message_box("message here", "one", "two"))
 print(vertical_message_box("message here", "one", "two"))

@@ -15,6 +15,7 @@ scripting.py
 
 
 import os
+import sys
 from ballcosmos.extract import convert_to_value
 
 PWD = os.path.dirname(os.path.abspath(__file__))
@@ -78,20 +79,13 @@ def combo_box(string, *options):
 def _file_dialog(message, directory, select_files=True):
     """ """
     answer = ""
-    if select_files:
-        files = [
-            f
-            for f in os.listdir(directory)
-            if os.path.isfile(os.path.join(directory, f))
-        ]
-    else:
-        files = [
-            f
-            for f in os.listdir(directory)
-            if os.path.isdir(os.path.join(directory, f))
-        ]
+    files = [] if not select_files else [
+        f for f in os.listdir(directory)
+        if os.path.isfile(os.path.join(directory, f))
+    ]
+    prpt = "\n".join([message,"\n".join(files), "<Type file name>: "])
     while not answer:
-        answer = input(message + "\n" + "\n".join(files) + "\n<Type file name>:")
+        answer = input(prpt)
     return answer
 
 
@@ -121,19 +115,23 @@ def prompt_for_hazardous(target_name, cmd_name, hazardous_description):
         "Warning: Command {:s} {:s} is Hazardous. ".format(target_name, cmd_name)
     ]
     if hazardous_description:
-        message_list.append("{:s}".format(hazardous_description))
+        message_list.append(" >> {:s}".format(hazardous_description))
     message_list.append("Send? (y/N): ")
     answer = input("\n".join(message_list))
-    return answer.lower() == "y"
+    try:
+        return answer.lower()[0] == "y"
+    except IndexError:
+        return False
 
 
 def prompt_for_script_abort():
     """ """
-    answer = input("Stop running script? (y,n): ")
-    if answer.downcase == "y":
-        exit()
-    else:
-        return False  # Not aborted - Retry
+    answer = input("Stop running script? (y/N): ")
+    try:
+        if answer.lower()[0] == "y":
+            sys.exit(66) # execute order 66
+    except IndexError:
+        return False
 
 
 def prompt_to_continue(string):

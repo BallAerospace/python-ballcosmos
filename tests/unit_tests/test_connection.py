@@ -103,7 +103,7 @@ class TestConnection(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             cmd_tlm_server.write(self.testconnection_error.__name__)
         self.assertIsNone(cmd_tlm_server._connection)
-        mock.connect.assert_called_once()
+        mock.connect.assert_called()
         mock.request.assert_not_called()
 
     @patch("ballcosmos.connection.HTTPConnection")

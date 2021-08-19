@@ -13,24 +13,16 @@ __init__.py
 # as published by the Free Software Foundation; version 3 with
 # attribution addendums as found in the LICENSE.txt
 
+import logging
+from ballcosmos.__version__ import __title__
 from ballcosmos.connection import *
 from ballcosmos.environment import *
 
 
-class CheckError(RuntimeError):
-    pass
-
-
-class StopScript(RuntimeError):
-    pass
-
-
-class SkipTestCase(RuntimeError):
-    pass
-
-
-class HazardousError(RuntimeError):
-    pass
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    level=logging.getLevelName(LOG_LEVEL),
+)
 
 
 ###################################
@@ -46,7 +38,7 @@ def initialize_module(hostname: str = None, port: int = None):
     global RMF
 
     if CTS:
-        CTS.disconnect()
+        CTS.shutdown()
 
     if hostname and port:
         CTS = Connection(hostname, port)
@@ -84,6 +76,7 @@ def get_replay_mode():
 
 initialize_module()
 
+from ballcosmos.exceptions import *
 from ballcosmos.extract import *
 from ballcosmos.scripting import *
 from ballcosmos.telemetry import *

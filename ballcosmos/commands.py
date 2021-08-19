@@ -15,8 +15,17 @@ commands.py
 
 
 import logging
+
 import ballcosmos
+from ballcosmos.__version__ import __title__
+from ballcosmos.exceptions import CosmosResponseError
 from ballcosmos.extract import convert_to_value
+from ballcosmos.scripting import (
+    prompt_for_hazardous,
+    prompt_for_script_abort,
+)
+
+LOGGER = logging.getLogger(__title__)
 
 # This is in System.commands in Ruby
 def build_cmd_output_string(target_name, cmd_name, cmd_params, raw=False):
@@ -42,36 +51,44 @@ def build_cmd_output_string(target_name, cmd_name, cmd_params, raw=False):
     return output_string
 
 
-def _log_cmd(target_name, cmd_name, cmd_params, raw, no_range, no_hazardous):
+def _log_cmd(cmd_, target_name, cmd_name, cmd_params):
     """Log any warnings about disabling checks and log the command itself
     NOTE: This is a helper method and should not be called directly"""
-    logger = logging.getLogger("ballcosmos")
-    cmd_str = build_cmd_output_string(target_name, cmd_name, cmd_params, raw)
-    if no_range:
-        logger.warning(f"{cmd_str} being sent ignoring range checks")
-    if no_hazardous:
-        logger.warning(f"{cmd_str} being sent ignoring hazardous warnings")
+    cmd_str = build_cmd_output_string(target_name, cmd_name, cmd_params, "raw" in cmd_)
+    if "no_range" in cmd_ or "no_checks" in cmd_:
+        LOGGER.warning(f"{cmd_str} being sent ignoring range checks")
+    if "no_hazardous" in cmd_ or "no_checks" in cmd_:
+        LOGGER.warning(f"{cmd_str} being sent ignoring hazardous warnings")
 
 
-def _cmd(cmd_, *args):
+def _cmd(cmd_, cmd_no_hazardous, *args):
     """Send the command and log the results
     NOTE: This is a helper method and should not be called directly"""
-    is_raw = "raw" in cmd_
-    is_no_range = "no_range" in cmd_ or "no_checks" in cmd_
-    is_no_hazardous = "no_hazardous" in cmd_ or "no_checks" in cmd_
-
-    target_name, cmd_name, cmd_params = ballcosmos.CTS.write(cmd_, *args)
-    _log_cmd(target_name, cmd_name, cmd_params, is_raw, is_no_range, is_no_hazardous)
+    try:
+        target_name, cmd_name, cmd_params = ballcosmos.CTS.write(cmd_, *args)
+        _log_cmd(cmd_, target_name, cmd_name, cmd_params)
+    except CosmosResponseError as error:
+        resp_error = error.response.error().data()["instance_variables"]
+        ok_to_proceed = prompt_for_hazardous(
+            resp_error["@target_name"],
+            resp_error["@cmd_name"],
+            resp_error["@hazardous_description"]
+        )
+        if ok_to_proceed:
+            target_name, cmd_name, cmd_params = ballcosmos.CTS.write(cmd_no_hazardous, *args)
+            _log_cmd(cmd_no_hazardous, target_name, cmd_name, cmd_params)
+        else:
+            prompt_for_script_abort()
 
 
 def cmd(*args):
     """Send a command to the specified target
     Usage:
-      cmd(target_name, cmd_name, cmd_params = {})
+      cmd(target_name, cmd_name, cmd_param1="value1")
     or
       cmd('target_name cmd_name with cmd_param1 value1, cmd_param2 value2')
     """
-    return _cmd("cmd", *args)
+    return _cmd("cmd", "cmd_no_hazardous_check", *args)
 
 
 def cmd_no_range_check(*args):
@@ -81,7 +98,7 @@ def cmd_no_range_check(*args):
     or
       cmd_no_range_check('target_name cmd_name with cmd_param1 value1, cmd_param2 value2')
     """
-    return _cmd("cmd_no_range_check", *args)
+    return _cmd("cmd_no_range_check", "cmd_no_checks", *args)
 
 
 def cmd_no_hazardous_check(*args):
@@ -91,7 +108,7 @@ def cmd_no_hazardous_check(*args):
     or
       cmd_no_hazardous_check('target_name cmd_name with cmd_param1 value1, cmd_param2 value2')
     """
-    return _cmd("cmd_no_hazardous_check", *args)
+    return _cmd("cmd_no_hazardous_check", None, *args)
 
 
 def cmd_no_checks(*args):
@@ -101,7 +118,7 @@ def cmd_no_checks(*args):
     or
       cmd_no_checks('target_name cmd_name with cmd_param1 value1, cmd_param2 value2')
     """
-    return _cmd("cmd_no_checks", *args)
+    return _cmd("cmd_no_checks", None, *args)
 
 
 def cmd_raw(*args):
@@ -111,7 +128,7 @@ def cmd_raw(*args):
     or
       cmd_raw('target_name cmd_name with cmd_param1 value1, cmd_param2 value2')
     """
-    return _cmd("cmd_raw", *args)
+    return _cmd("cmd_raw", "cmd_raw_no_hazardous_check", *args)
 
 
 def cmd_raw_no_range_check(*args):
@@ -121,7 +138,7 @@ def cmd_raw_no_range_check(*args):
     or
       cmd_raw_no_range_check('target_name cmd_name with cmd_param1 value1, cmd_param2 value2')
     """
-    return _cmd("cmd_raw_no_range_check", *args)
+    return _cmd("cmd_raw_no_range_check", "cmd_raw_no_checks", *args)
 
 
 def cmd_raw_no_hazardous_check(*args):
@@ -131,7 +148,7 @@ def cmd_raw_no_hazardous_check(*args):
     or
       cmd_raw_no_hazardous_check('target_name cmd_name with cmd_param1 value1, cmd_param2 value2')
     """
-    return _cmd("cmd_raw_no_hazardous_check", *args)
+    return _cmd("cmd_raw_no_hazardous_check", None, *args)
 
 
 def cmd_raw_no_checks(*args):
@@ -141,7 +158,7 @@ def cmd_raw_no_checks(*args):
     or
       cmd_raw_no_checks('target_name cmd_name with cmd_param1 value1, cmd_param2 value2')
     """
-    return _cmd("cmd_raw_no_checks", *args)
+    return _cmd("cmd_raw_no_checks", None, *args)
 
 
 def send_raw(interface_name, data):

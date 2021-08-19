@@ -17,6 +17,7 @@ api_shared.py
 import time
 import logging
 import ballcosmos
+from ballcosmos.__version__ import __title__
 from ballcosmos.environment import DEFAULT_CTS_API_HOST
 from ballcosmos.connection import Connection
 from ballcosmos.telemetry import (
@@ -32,6 +33,7 @@ from ballcosmos.extract import (
 )
 
 DEFAULT_TLM_POLLING_RATE = 0.25
+LOGGER = logging.getLogger(__title__)
 
 
 def _upcase(target_name: str, packet_name: str, item_name: str):
@@ -53,8 +55,7 @@ def _check(method, *args):
         return check_eval(
             target_name, packet_name, item_name, comparison_to_eval, value
         )
-    logger = logging.getLogger("ballcosmos")
-    logger.info(
+    LOGGER.info(
         "CHECK: {:s} == {:s}".format(
             _upcase(target_name, packet_name, item_name), str(value)
         )
@@ -143,8 +144,7 @@ def _check_tolerance(method, *args):
                 all_checks_ok = False
 
         if all_checks_ok:
-            logger = logging.getLogger("ballcosmos")
-            logger.info(message)
+            LOGGER.info(message)
         else:
             raise RuntimeError(message)
     else:
@@ -155,8 +155,7 @@ def _check_tolerance(method, *args):
             range_bottom, range_top, value
         )
         if value >= range_bottom and value <= range_top:
-            logger = logging.getLogger("ballcosmos")
-            logger.info("{:s} was within {:s}".format(check_str, range_str))
+            LOGGER.info("{:s} was within {:s}".format(check_str, range_str))
         else:
             message = "{:s} failed to be within {:s}".format(check_str, range_str)
             raise RuntimeError(message)
@@ -193,8 +192,7 @@ def check_expression(exp_to_eval, locals=None):
         exp_to_eval, 0, DEFAULT_TLM_POLLING_RATE, locals
     )
     if success:
-        logger = logging.getLogger("ballcosmos")
-        logger.info("CHECK: {:s} is TRUE".format(exp_to_eval))
+        LOGGER.info("CHECK: {:s} is TRUE".format(exp_to_eval))
     else:
         message = "CHECK: {:s} is FALSE".format(exp_to_eval)
         raise RuntimeError(message)
@@ -272,11 +270,10 @@ def _wait_tolerance(raw, *args):
                     check_str, range_str
                 )
 
-        logger = logging.getLogger("ballcosmos")
         if success:
-            logger.info(message)
+            LOGGER.info(message)
         else:
-            logger.warn(message)
+            LOGGER.warn(message)
     else:
         success, value = cosmos_script_wait_implementation_tolerance(
             target_name,
@@ -297,11 +294,10 @@ def _wait_tolerance(raw, *args):
                 range_bottom, range_top, value, time_float
             )
         )
-        logger = logging.getLogger("ballcosmos")
         if success:
-            logger.info("{:s} was within {:s}".format(wait_str, range_str))
+            LOGGER.info("{:s} was within {:s}".format(wait_str, range_str))
         else:
-            logger.warning("{:s} failed to be within {:s}".format(wait_str, range_str))
+            LOGGER.warning("{:s} failed to be within {:s}".format(wait_str, range_str))
     return time_float
 
 
@@ -332,15 +328,14 @@ def wait_expression(
         exp_to_eval, timeout, polling_rate, locals
     )
     time_float = time.time() - start_time
-    logger = logging.getLogger("ballcosmos")
     if success:
-        logger.info(
+        LOGGER.info(
             "WAIT: {:s} is TRUE after waiting {:g} seconds".format(
                 exp_to_eval, time_float
             )
         )
     else:
-        logger.warning(
+        LOGGER.warning(
             "WAIT: {:s} is FALSE after waiting {:g} seconds".format(
                 exp_to_eval, time_float
             )
@@ -379,8 +374,7 @@ def _wait_check(raw, *args):
         str(value), time_float
     )
     if success:
-        logger = logging.getLogger("ballcosmos")
-        logger.info("{:s} success {:s}".format(check_str, with_value_str))
+        LOGGER.info("{:s} success {:s}".format(check_str, with_value_str))
     else:
         message = "{:s} failed {:s}".format(check_str, with_value_str)
         raise RuntimeError(message)
@@ -461,8 +455,7 @@ def _wait_check_tolerance(raw, *args):
                 )
 
         if success:
-            logger = logging.getLogger("ballcosmos")
-            logger.info(message)
+            LOGGER.info(message)
         else:
             raise RuntimeError(message)
     else:
@@ -486,8 +479,7 @@ def _wait_check_tolerance(raw, *args):
             )
         )
         if success:
-            logger = logging.getLogger("ballcosmos")
-            logger.info("{:s} was within {:s}".format(check_str, range_str))
+            LOGGER.info("{:s} was within {:s}".format(check_str, range_str))
         else:
             message = "{:s} failed to be within {:s}".format(check_str, range_str)
             raise RuntimeError(message)
@@ -512,8 +504,7 @@ def wait_check_expression(
     )
     time_float = time.time() - start_time
     if success:
-        logger = logging.getLogger("ballcosmos")
-        logger.info(
+        LOGGER.info(
             "CHECK: {:s} is TRUE after waiting {:g} seconds".format(
                 exp_to_eval, time_float
             )
@@ -555,9 +546,8 @@ def _wait_packet(
         polling_rate,
     )
     time_float = time.time() - start_time
-    logger = logging.getLogger("ballcosmos")
     if success:
-        logger.info(
+        LOGGER.info(
             "{:s}: {:s} {:s} received {:d} times after waiting {:g} seconds".format(
                 type,
                 target_name.upper(),
@@ -578,7 +568,7 @@ def _wait_packet(
         if check:
             raise RuntimeError(message)
         else:
-            logger.warning(message)
+            LOGGER.warning(message)
     return time_float
 
 
@@ -684,23 +674,21 @@ def _execute_wait(
     value_str = "with value == {:s} after waiting {:g} seconds".format(
         str(value), time_float
     )
-    logger = logging.getLogger("ballcosmos")
     if success:
-        logger.info("{:s} success {:s}".format(wait_str, value_str))
+        LOGGER.info("{:s} success {:s}".format(wait_str, value_str))
     else:
-        logger.warning("{:s} failed {:s}".format(wait_str, value_str))
+        LOGGER.warning("{:s} failed {:s}".format(wait_str, value_str))
 
 
 def wait_process_args(args, function_name, value_type):
     time_float = None
 
-    logger = logging.getLogger("ballcosmos")
     length = len(args)
     if length == 0:
         start_time = time.time()
         cosmos_script_sleep()
         time_float = time.time() - start_time
-        logger.info(
+        LOGGER.info(
             "WAIT: Indefinite for actual time of {:g} seconds".format(time_float)
         )
 
@@ -713,7 +701,7 @@ def wait_process_args(args, function_name, value_type):
         start_time = time.time()
         cosmos_script_sleep(value)
         time_float = time.time() - start_time
-        logger.info(
+        LOGGER.info(
             "WAIT: {:g} seconds with actual time of {:g} seconds".format(
                 value, time_float
             )
@@ -1039,8 +1027,7 @@ def check_eval(target_name, packet_name, item_name, comparison_to_eval, value):
     )
     value_str = "with value == {:s}".format(str(value))
     if eval(string):
-        logger = logging.getLogger("ballcosmos")
-        logger.info("{:s} success {:s}".format(check_str, value_str))
+        LOGGER.info("{:s} success {:s}".format(check_str, value_str))
     else:
         message = "{:s} failed {:s}".format(check_str, value_str)
         raise RuntimeError(message)
