@@ -14,7 +14,6 @@ __init__.py
 # attribution addendums as found in the LICENSE.txt
 
 import logging
-from ballcosmos.__version__ import __title__
 from ballcosmos.connection import *
 from ballcosmos.environment import *
 

@@ -25,12 +25,7 @@ from ballcosmos.json_rpc import *
 from ballcosmos.exceptions import *
 from ballcosmos.environment import *
 
-logger = logging.getLogger(__title__)
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(name)s %(message)s",
-    level=logging.getLevelName(LOG_LEVEL),
-)
-
+LOGGER = logging.getLogger(__title__)
 
 class ConnectionError(RuntimeError):
     pass
@@ -119,7 +114,7 @@ class Connection:
             self._connection = None
         exception_ = None
         for i in range(MAX_RETRY_COUNT):
-            logger.debug(
+            LOGGER.debug(
                 "connect try %d out of %d to %s:%d",
                 i,
                 MAX_RETRY_COUNT,
@@ -133,7 +128,7 @@ class Connection:
                     timeout=self.connect_timeout,
                 )
                 self._connection.connect()
-                logger.debug("connected on try %d out of %d", i, MAX_RETRY_COUNT)
+                LOGGER.debug("connected on try %d out of %d", i, MAX_RETRY_COUNT)
                 exception_ = None
                 break
             except ConnectionRefusedError as error:
@@ -144,7 +139,7 @@ class Connection:
                 break
 
         if exception_ is not None:
-            logger.debug("connect() failed %s", exception_)
+            LOGGER.debug("connect() failed %s", exception_)
             self.disconnect()
             self._connection = None
             raise RuntimeError(
@@ -167,12 +162,12 @@ class Connection:
             },
         }
         try:
-            logger.debug("request: %s", request_kwargs)
+            LOGGER.debug("request: %s", request_kwargs)
             self._connection.request(**request_kwargs)
             response = self._connection.getresponse()
             response_data = response.read()
             response_headers = [{x[0], x[1]} for x in response.getheaders()]
-            logger.debug(
+            LOGGER.debug(
                 "response headers: %s, response: %s", response_headers, response_data
             )
             return response_data
