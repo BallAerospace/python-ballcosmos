@@ -1,8 +1,9 @@
 Please Read:
 https://packaging.python.org/tutorials/distributing-packages/
 
-python setup.py bdist_wheel
-twine upload dist/*
+rmdir /s /q dist
+python -m build
+python -m twine upload dist/*
 
 1.1.0
 * updated request header to source X_CSRF_TOKEN from environment "COSMOS_X_CSRF_TOKEN"
@@ -18,3 +19,6 @@ default is equal to "SuperSecret"
 * more environment variables see docs or ballcosmos.environment
 * updated the _cmd function to work
 * python Black format
+
+2.0.1
+* Make *expression apis able to use all cosmos functionality
