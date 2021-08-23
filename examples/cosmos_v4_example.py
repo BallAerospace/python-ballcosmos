@@ -9,6 +9,8 @@ import os
 
 from ballcosmos import *
 
+print()
+
 
 def run_thread():
     print("Running thread")
@@ -171,17 +173,7 @@ try:
 except NotImplementedError:
     pass
 
-# scripting.py
-print(ask_string("Question?:"))
-print(ask("Well?:"))
-print(prompt("Hit Ok"))
-print(message_box("message here", "one", "two"))
-print(vertical_message_box("message here", "one", "two"))
-print(combo_box("message here", "one", "two"))
-print(save_file_dialog())
-print(open_file_dialog())
-print(open_files_dialog())
-print(open_directory_dialog())
+# api_shared.py
 print(check("INST HEALTH_STATUS TEMP1 > -200"))
 print(check_formatted("INST HEALTH_STATUS COLLECT_TYPE == 'NORMAL'"))
 print(check_with_units("INST HEALTH_STATUS COLLECT_TYPE == 'NORMAL'"))
@@ -199,6 +191,7 @@ print(wait_check_raw("INST HEALTH_STATUS COLLECT_TYPE == 0", 5))
 print(wait_check_tolerance("INST HEALTH_STATUS TEMP1", 0, -200.0, 5))
 print(wait_check_tolerance_raw("INST HEALTH_STATUS TEMP1", 0, -200000.0, 5))
 print(wait_check_expression("True == True", 5))
+print(wait_check_expression("interface_state('TEMPLATED_INT') == 'DISCONNECTED'", 5))
 print(wait_expression_stop_on_timeout("True == True", 5))
 print(wait_packet("INST", "HEALTH_STATUS", 3, 5))
 print(wait_check_packet("INST", "HEALTH_STATUS", 3, 5))
@@ -219,6 +212,18 @@ print(replay_move_end())
 print(replay_move_index(0))
 
 set_replay_mode(False)
+
+# scripting.py
+print(ask_string("Question?:"))
+print(ask("Well?:"))
+print(prompt("Hit Ok"))
+print(message_box("message here", "one", "two"))
+print(vertical_message_box("message here", "one", "two"))
+print(combo_box("message here", "one", "two"))
+print(save_file_dialog())
+print(open_file_dialog())
+print(open_files_dialog())
+print(open_directory_dialog())
 
 thread = threading.Thread(target=run_thread)
 thread.start()

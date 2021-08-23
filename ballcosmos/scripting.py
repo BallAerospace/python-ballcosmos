@@ -79,11 +79,16 @@ def combo_box(string, *options):
 def _file_dialog(message, directory, select_files=True):
     """ """
     answer = ""
-    files = [] if not select_files else [
-        f for f in os.listdir(directory)
-        if os.path.isfile(os.path.join(directory, f))
-    ]
-    prpt = "\n".join([message,"\n".join(files), "<Type file name>: "])
+    files = (
+        []
+        if not select_files
+        else [
+            f
+            for f in os.listdir(directory)
+            if os.path.isfile(os.path.join(directory, f))
+        ]
+    )
+    prpt = "\n".join([message, "\n".join(files), "<Type file name>: "])
     while not answer:
         answer = input(prpt)
     return answer
@@ -129,7 +134,7 @@ def prompt_for_script_abort():
     answer = input("Stop running script? (y/N): ")
     try:
         if answer.lower()[0] == "y":
-            sys.exit(66) # execute order 66
+            sys.exit(66)  # execute order 66
     except IndexError:
         return False
 

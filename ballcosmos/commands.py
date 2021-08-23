@@ -72,10 +72,12 @@ def _cmd(cmd_, cmd_no_hazardous, *args):
         ok_to_proceed = prompt_for_hazardous(
             resp_error["@target_name"],
             resp_error["@cmd_name"],
-            resp_error["@hazardous_description"]
+            resp_error["@hazardous_description"],
         )
         if ok_to_proceed:
-            target_name, cmd_name, cmd_params = ballcosmos.CTS.write(cmd_no_hazardous, *args)
+            target_name, cmd_name, cmd_params = ballcosmos.CTS.write(
+                cmd_no_hazardous, *args
+            )
             _log_cmd(cmd_no_hazardous, target_name, cmd_name, cmd_params)
         else:
             prompt_for_script_abort()

@@ -27,6 +27,7 @@ from ballcosmos.environment import *
 
 LOGGER = logging.getLogger(__title__)
 
+
 class ConnectionError(RuntimeError):
     pass
 
@@ -188,4 +189,6 @@ class Connection:
             return response.result()
         # Socket was closed by server
         self.disconnect()
-        raise CosmosConnectionError(f"request: {request} failed, was the socket closed by server")
+        raise CosmosConnectionError(
+            f"request: {request} failed, was the socket closed by server"
+        )
