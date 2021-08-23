@@ -9,8 +9,6 @@ import os
 
 from ballcosmos import *
 
-print()
-
 
 def run_thread():
     print("Running thread")
