@@ -20,17 +20,12 @@ import ballcosmos
 from ballcosmos.__version__ import __title__
 from ballcosmos.environment import DEFAULT_CTS_API_HOST
 from ballcosmos.connection import Connection
-from ballcosmos.telemetry import (
-    tlm,
-    tlm_formatted,
-    tlm_with_units,
-    tlm_raw,
-    tlm_variable,
-)
-from ballcosmos.extract import (
-    extract_fields_from_check_text,
-    extract_fields_from_tlm_text,
-)
+from ballcosmos.cmd_tlm_server import *
+from ballcosmos.commands import *
+from ballcosmos.extract import *
+from ballcosmos.limits import *
+from ballcosmos.scripting import *
+from ballcosmos.telemetry import *
 
 DEFAULT_TLM_POLLING_RATE = 0.25
 LOGGER = logging.getLogger(__title__)
@@ -185,19 +180,6 @@ def check_tolerance_raw(*args):
     return _check_tolerance(ballcosmos.telemetry.tlm_raw, *args)
 
 
-def check_expression(exp_to_eval, locals=None):
-    """Check to see if an expression is true without waiting.  If the expression
-    is not true, the script will pause."""
-    success = cosmos_script_wait_implementation_expression(
-        exp_to_eval, 0, DEFAULT_TLM_POLLING_RATE, locals
-    )
-    if success:
-        LOGGER.info("CHECK: {:s} is TRUE".format(exp_to_eval))
-    else:
-        message = "CHECK: {:s} is FALSE".format(exp_to_eval)
-        raise RuntimeError(message)
-
-
 def wait(*args):
     """Wait on an expression to be true.  On a timeout, the script will continue.
     Supports multiple signatures:
@@ -317,30 +299,6 @@ def wait_tolerance_raw(*args):
     wait_tolerance_raw('target_name', 'packet_name', 'item_name', expected_value, tolerance, timeout, polling_rate)
     """
     return _wait_tolerance(True, *args)
-
-
-def wait_expression(
-    exp_to_eval, timeout, polling_rate=DEFAULT_TLM_POLLING_RATE, locals=None
-):
-    """Wait on a custom expression to be true"""
-    start_time = time.time()
-    success = cosmos_script_wait_implementation_expression(
-        exp_to_eval, timeout, polling_rate, locals
-    )
-    time_float = time.time() - start_time
-    if success:
-        LOGGER.info(
-            "WAIT: {:s} is TRUE after waiting {:g} seconds".format(
-                exp_to_eval, time_float
-            )
-        )
-    else:
-        LOGGER.warning(
-            "WAIT: {:s} is FALSE after waiting {:g} seconds".format(
-                exp_to_eval, time_float
-            )
-        )
-    return time_float
 
 
 def _wait_check(raw, *args):
@@ -494,33 +452,6 @@ def wait_check_tolerance_raw(*args):
     _wait_check_tolerance(True, *args)
 
 
-def wait_check_expression(
-    exp_to_eval, timeout, polling_rate=DEFAULT_TLM_POLLING_RATE, context=None
-):
-    """Wait on an expression to be true.  On a timeout, the script will pause"""
-    start_time = time.time()
-    success = cosmos_script_wait_implementation_expression(
-        exp_to_eval, timeout, polling_rate, context
-    )
-    time_float = time.time() - start_time
-    if success:
-        LOGGER.info(
-            "CHECK: {:s} is TRUE after waiting {:g} seconds".format(
-                exp_to_eval, time_float
-            )
-        )
-    else:
-        message = "CHECK: {:s} is FALSE after waiting {:g} seconds".format(
-            exp_to_eval, time_float
-        )
-        raise RuntimeError(message)
-    return time_float
-
-
-def wait_expression_stop_on_timeout(*args):
-    return wait_check_expression(*args)
-
-
 def _wait_packet(
     check,
     target_name,
@@ -596,6 +527,125 @@ def wait_check_packet(
         True, target_name, packet_name, num_packets, timeout, polling_rate
     )
 
+
+def cosmos_script_wait_implementation_expression(
+    exp_to_eval, timeout, polling_rate, locals=None
+):
+    """Wait on an expression to be true."""
+    end_time = time.time() + timeout
+    # ~ context = ScriptRunnerFrame.instance.script_binding if !context and defined? ScriptRunnerFrame and ScriptRunnerFrame.instance
+
+    while True:
+        work_start = time.time()
+        if eval(exp_to_eval, locals):
+            return True
+        if time.time() >= end_time:
+            break
+
+        delta = time.time() - work_start
+        sleep_time = polling_rate - delta
+        end_delta = end_time - time.time()
+        if end_delta < sleep_time:
+            sleep_time = end_delta
+        if sleep_time < 0:
+            sleep_time = 0
+        canceled = cosmos_script_sleep(sleep_time)
+
+        if canceled:
+            if eval(exp_to_eval, locals):
+                return True
+            else:
+                return None
+
+
+def check_expression(exp_to_eval, locals=None):
+    """Check to see if an expression is true without waiting.  If the expression
+    is not true, the script will pause."""
+    success = cosmos_script_wait_implementation_expression(
+        exp_to_eval, 0, DEFAULT_TLM_POLLING_RATE, locals
+    )
+    if success:
+        LOGGER.info("CHECK: {:s} is TRUE".format(exp_to_eval))
+    else:
+        message = "CHECK: {:s} is FALSE".format(exp_to_eval)
+        raise RuntimeError(message)
+
+
+def wait_expression(
+    exp_to_eval, timeout, polling_rate=DEFAULT_TLM_POLLING_RATE, locals=None
+):
+    """Wait on a custom expression to be true"""
+    start_time = time.time()
+    success = cosmos_script_wait_implementation_expression(
+        exp_to_eval, timeout, polling_rate, locals
+    )
+    time_float = time.time() - start_time
+    logger = logging.getLogger("ballcosmos")
+    if success:
+        logger.info(
+            "WAIT: {:s} is TRUE after waiting {:g} seconds".format(
+                exp_to_eval, time_float
+            )
+        )
+    else:
+        logger.warning(
+            "WAIT: {:s} is FALSE after waiting {:g} seconds".format(
+                exp_to_eval, time_float
+            )
+        )
+    return time_float
+
+
+def wait_check_expression(
+    exp_to_eval, timeout, polling_rate=DEFAULT_TLM_POLLING_RATE, context=None
+):
+    """Wait on an expression to be true.  On a timeout, the script will pause"""
+    start_time = time.time()
+    success = cosmos_script_wait_implementation_expression(
+        exp_to_eval, timeout, polling_rate, context
+    )
+    time_float = time.time() - start_time
+    if success:
+        LOGGER.info(
+            "CHECK: {:s} is TRUE after waiting {:g} seconds".format(
+                exp_to_eval, time_float
+            )
+        )
+    else:
+        message = "CHECK: {:s} is FALSE after waiting {:g} seconds".format(
+            exp_to_eval, time_float
+        )
+        raise RuntimeError(message)
+    return time_float
+
+
+def wait_expression_stop_on_timeout(*args):
+    return wait_check_expression(*args)
+
+
+def wait_expression(
+    exp_to_eval, timeout, polling_rate=DEFAULT_TLM_POLLING_RATE, locals=None
+):
+    """Wait on a custom expression to be true"""
+    start_time = time.time()
+    success = cosmos_script_wait_implementation_expression(
+        exp_to_eval, timeout, polling_rate, locals
+    )
+    time_float = time.time() - start_time
+    logger = logging.getLogger("ballcosmos")
+    if success:
+        logger.info(
+            "WAIT: {:s} is TRUE after waiting {:g} seconds".format(
+                exp_to_eval, time_float
+            )
+        )
+    else:
+        logger.warning(
+            "WAIT: {:s} is FALSE after waiting {:g} seconds".format(
+                exp_to_eval, time_float
+            )
+        )
+    return time_float
 
 ##########################################
 # Protected Methods
@@ -986,38 +1036,6 @@ def cosmos_script_wait_implementation_array_tolerance(
         polling_rate,
         exp_to_eval,
     )
-
-
-def cosmos_script_wait_implementation_expression(
-    exp_to_eval, timeout, polling_rate, locals=None
-):
-    """Wait on an expression to be true."""
-    end_time = time.time() + timeout
-    # ~ context = ScriptRunnerFrame.instance.script_binding if !context and defined? ScriptRunnerFrame and ScriptRunnerFrame.instance
-
-    while True:
-        work_start = time.time()
-        if eval(exp_to_eval, locals):
-            return True
-        if time.time() >= end_time:
-            break
-
-        delta = time.time() - work_start
-        sleep_time = polling_rate - delta
-        end_delta = end_time - time.time()
-        if end_delta < sleep_time:
-            sleep_time = end_delta
-        if sleep_time < 0:
-            sleep_time = 0
-        canceled = cosmos_script_sleep(sleep_time)
-
-        if canceled:
-            if eval(exp_to_eval, locals):
-                return True
-            else:
-                return None
-
-    return None
 
 
 def check_eval(target_name, packet_name, item_name, comparison_to_eval, value):
