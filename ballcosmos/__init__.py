@@ -17,13 +17,6 @@ import logging
 from ballcosmos.connection import *
 from ballcosmos.environment import *
 
-
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(name)s %(message)s",
-    level=logging.getLevelName(LOG_LEVEL),
-)
-
-
 ###################################
 
 CTS = None  # Stands for command telemetry server
